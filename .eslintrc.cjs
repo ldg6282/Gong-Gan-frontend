@@ -2,6 +2,7 @@ module.exports = {
   root: true,
   env: { browser: true, es2020: true },
   extends: [
+    "airbnb",
     "eslint:recommended",
     "plugin:react/recommended",
     "plugin:react/jsx-runtime",
@@ -17,6 +18,7 @@ module.exports = {
     "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
     "prettier/prettier": ["error", { endOfLine: "auto" }],
     "no-multiple-empty-lines": ["error", { max: 1, maxEOF: 1, maxBOF: 0 }],
+    "import/no-extraneous-dependencies": ["error", { devDependencies: true }],
     "no-unused-vars": "error",
     quotes: ["error", "double"],
     semi: ["error", "always"],
@@ -31,5 +33,6 @@ module.exports = {
     "react/style-prop-object": "off",
     "func-names": "off",
     "no-undef": "off",
+    "no-console": "error",
   },
 };
