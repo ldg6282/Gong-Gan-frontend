@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Gong-Gan",
+  "version": "0.1.0",
+  "description": "Gong-Gan은 여러 명의 사용자가 협업할 수 있는 공간을 제공합니다.",
+  "permissions": ["tabs", "activeTab", "scripting"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_icon": {
+      "16": "icons/gonggan.png",
+      "32": "icons/gonggan.png",
+      "48": "icons/gonggan.png",
+      "128": "icons/gonggan.png"
+    },
+    "default_title": "Gong-Gan"
+  },
+  "icons": {
+    "16": "icons/gonggan.png",
+    "32": "icons/gonggan.png",
+    "48": "icons/gonggan.png",
+    "128": "icons/gonggan.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "type": "module"
+    }
+  ]
+}
