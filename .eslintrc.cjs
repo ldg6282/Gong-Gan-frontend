@@ -8,7 +8,7 @@ module.exports = {
     "plugin:react-hooks/recommended",
     "plugin:prettier/recommended",
   ],
-  ignorePatterns: ["dist", ".eslintrc.cjs"],
+  ignorePatterns: ["dist", ".eslintrc.cjs", "postcss.config.js"],
   parserOptions: { ecmaVersion: "latest", sourceType: "module" },
   settings: { react: { version: "18.2" } },
   plugins: ["react", "react-refresh", "prettier"],
@@ -30,5 +30,6 @@ module.exports = {
     "react/prop-types": "off",
     "react/style-prop-object": "off",
     "func-names": "off",
+    "no-undef": "off",
   },
 };
