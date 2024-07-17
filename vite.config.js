@@ -7,15 +7,16 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        main: resolve(__dirname, "index.html"),
-        content: resolve(__dirname, "src/content.jsx"),
         background: resolve(__dirname, "public/background.js"),
+        popup: resolve(__dirname, "src/popup.jsx"),
+        "content-script": resolve(__dirname, "src/content-script.jsx"),
       },
       output: {
         format: "es",
         entryFileNames: "[name].js",
         chunkFileNames: "[name].js",
         assetFileNames: "assets/[name].[ext]",
+        dir: resolve(__dirname, "dist"),
       },
     },
   },
