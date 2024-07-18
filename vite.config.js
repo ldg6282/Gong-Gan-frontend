@@ -9,13 +9,14 @@ export default defineConfig({
       input: {
         background: resolve(__dirname, "public/background.js"),
         popup: resolve(__dirname, "src/popup.jsx"),
-        "content-script": resolve(__dirname, "src/content-script.jsx"),
+        content: resolve(__dirname, "src/content.jsx"),
+        "content-script": resolve(__dirname, "src/content-script-loader.js"),
       },
       output: {
         format: "es",
         entryFileNames: "[name].js",
-        chunkFileNames: "[name].js",
-        assetFileNames: "assets/[name].[ext]",
+        chunkFileNames: "chunks/[name].js",
+        assetFileNames: "assets/[name][extname]",
         dir: resolve(__dirname, "dist"),
       },
     },
