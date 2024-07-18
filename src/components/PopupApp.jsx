@@ -1,18 +1,36 @@
 import { useState } from "react";
+import { useAtom } from "jotai";
+import htmlContentAtom from "../atoms/atoms";
 
 export default function PopupApp() {
-  const [showCreateRoom, setShowCreateRoom] = useState(false);
-  const [showJoinRoom, setShowJoinRoom] = useState(false);
+  const [isShowCreateRoom, setIsShowCreateRoom] = useState(false);
+  const [isShowJoinRoom, setIsShowJoinRoom] = useState(false);
+  const [url, setUrl] = useAtom(htmlContentAtom);
 
-  const handleCreateRoom = () => {
-    setShowCreateRoom(true);
-    setShowJoinRoom(false);
-  };
+  function handleCreateRoom() {
+    setIsShowCreateRoom(true);
+    setIsShowJoinRoom(false);
+  }
 
-  const handleJoinRoom = () => {
-    setShowCreateRoom(false);
-    setShowJoinRoom(true);
-  };
+  function handleJoinRoom() {
+    setIsShowCreateRoom(false);
+    setIsShowJoinRoom(true);
+  }
+
+  function handleUrlChange(e) {
+    setUrl(e.target.value);
+  }
+
+  function handleRoomButtonClick() {
+    chrome.tabs.create({ url }, (tab) => {
+      chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+        if (tabId === tab.id && info.status === "complete") {
+          chrome.tabs.onUpdated.removeListener(listener);
+          chrome.tabs.sendMessage(tabId, { action: "initContent" });
+        }
+      });
+    });
+  }
 
   return (
     <div className="p-4 w-[400px]">
@@ -33,7 +51,7 @@ export default function PopupApp() {
           공간 생성
         </button>
       </div>
-      {showJoinRoom && (
+      {isShowJoinRoom && (
         <div className="mt-4">
           <h2 className="text-lg mb-2 font-sans">참여하기</h2>
           <input
@@ -41,12 +59,16 @@ export default function PopupApp() {
             placeholder="방 번호 입력"
             className="p-2 border rounded w-full mb-2"
           />
-          <button type="button" className="p-2 bg-blue rounded-md w-full font-sans">
+          <button
+            type="button"
+            className="p-2 bg-blue rounded-md w-full font-sans"
+            onClick={handleRoomButtonClick}
+          >
             참여하기
           </button>
         </div>
       )}
-      {showCreateRoom && (
+      {isShowCreateRoom && (
         <div className="mt-4">
           <h2 className="text-lg mb-2 font-sans">공간 생성</h2>
           <input
@@ -60,7 +82,11 @@ export default function PopupApp() {
             className="p-2 border rounded w-full mb-2"
             onChange={handleUrlChange}
           />
-          <button type="button" className="p-2 bg-blue rounded-md w-full font-sans">
+          <button
+            type="button"
+            className="p-2 bg-blue rounded-md w-full font-sans"
+            onClick={handleRoomButtonClick}
+          >
             공간 생성
           </button>
         </div>

@@ -1,9 +1,14 @@
+import IframeLoader from "./components/IframeLoader";
+import Header from "./components/Header";
 import "./index.css";
 
 export default function App() {
   return (
-    <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-gray-100 z-50">
-      <h1 className="text-2xl font-bold text-blue-600">안녕하세요, 공간입니다</h1>
+    <div className="fixed inset-0 flex flex-col h-screen w-screen bg-white z-50">
+      <Header className="h-16" />
+      <div className="flex-grow w-full">
+        <IframeLoader />
+      </div>
     </div>
   );
 }
