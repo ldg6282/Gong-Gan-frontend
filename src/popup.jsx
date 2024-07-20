@@ -1,4 +1,4 @@
-import React from "react";
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Provider } from "jotai";
 import PopupApp from "./components/PopupApp";
@@ -8,9 +8,9 @@ const rootElement = document.getElementById("popup-root");
 const root = createRoot(rootElement);
 
 root.render(
-  <React.StrictMode>
+  <StrictMode>
     <Provider>
       <PopupApp />
     </Provider>
-  </React.StrictMode>,
+  </StrictMode>,
 );
