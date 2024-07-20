@@ -1,9 +1,16 @@
 {
   "manifest_version": 3,
   "name": "Gong-Gan",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Gong-Gan은 여러 명의 사용자가 협업할 수 있는 공간을 제공합니다.",
-  "permissions": ["tabs", "activeTab", "scripting"],
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "scripting",
+    "webRequest",
+    "webNavigation",
+    "declarativeNetRequest"
+  ],
   "background": {
     "service_worker": "background.js"
   },
@@ -26,7 +33,8 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content-script.js"]
+      "js": ["content-script.js"],
+      "run_at": "document_start"
     }
   ],
   "web_accessible_resources": [
@@ -34,5 +42,15 @@
       "resources": ["content.js", "index.js", "chunks/*", "assets/*"],
       "matches": ["<all_urls>"]
     }
-  ]
+  ],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "rules",
+        "enabled": true,
+        "path": "rules.json"
+      }
+    ]
+  },
+  "host_permissions": ["<all_urls>"]
 }
