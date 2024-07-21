@@ -9,8 +9,8 @@ export default defineConfig({
       input: {
         background: resolve(__dirname, "public/background.js"),
         popup: resolve(__dirname, "src/popup.jsx"),
-        content: resolve(__dirname, "src/content.jsx"),
-        "content-script": resolve(__dirname, "src/content-script-loader.js"),
+        content: resolve(__dirname, "public/content.js"),
+        index: resolve(__dirname, "src/main.jsx"),
       },
       output: {
         format: "es",
