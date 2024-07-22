@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAtom } from "jotai";
 import { htmlContentAtom } from "../atoms/atoms";
 
@@ -6,6 +6,46 @@ export default function PopupApp() {
   const [isShowCreateRoom, setIsShowCreateRoom] = useState(false);
   const [isShowJoinRoom, setIsShowJoinRoom] = useState(false);
   const [url, setUrl] = useAtom(htmlContentAtom);
+  const [roomId, setRoomId] = useState("");
+  const [socket, setSocket] = useState(null);
+
+  useEffect(() => {
+    const ws = new WebSocket("https://73f0-14-52-239-67.ngrok-free.app");
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === "roomCreated") {
+        setRoomId(data.roomId);
+        chrome.tabs.create({ url }, (tab) => {
+          chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+            if (tabId === tab.id && info.status === "complete") {
+              chrome.tabs.onUpdated.removeListener(listener);
+              chrome.tabs.sendMessage(tabId, { action: "initContent" });
+            }
+          });
+        });
+      } else if (data.type === "roomJoined") {
+        setUrl(data.url);
+        chrome.tabs.create({ url: data.url }, (tab) => {
+          chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+            if (tabId === tab.id && info.status === "complete") {
+              chrome.tabs.onUpdated.removeListener(listener);
+              chrome.tabs.sendMessage(tabId, { action: "initContent" });
+            }
+          });
+        });
+      } else if (data.type === "roomUpdated") {
+        setUrl(data.url);
+        chrome.tabs.query({ url: data.url }, (tabs) => {
+          tabs.forEach((tab) => {
+            chrome.tabs.sendMessage(tab.id, { action: "initContent" });
+          });
+        });
+      }
+    };
+    setSocket(ws);
+
+    return () => ws.close();
+  }, [url]);
 
   function handleCreateRoom() {
     setIsShowCreateRoom(true);
@@ -21,15 +61,16 @@ export default function PopupApp() {
     setUrl(e.target.value);
   }
 
-  function handleRoomButtonClick() {
-    chrome.tabs.create({ url }, (tab) => {
-      chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
-        if (tabId === tab.id && info.status === "complete") {
-          chrome.tabs.onUpdated.removeListener(listener);
-          chrome.tabs.sendMessage(tabId, { action: "initContent" });
-        }
-      });
-    });
+  function handleCreateRoomSubmit() {
+    if (socket) {
+      socket.send(JSON.stringify({ type: "createRoom", roomId, url }));
+    }
+  }
+
+  function handleJoinRoomSubmit() {
+    if (socket) {
+      socket.send(JSON.stringify({ type: "joinRoom", roomId }));
+    }
   }
 
   return (
@@ -57,12 +98,14 @@ export default function PopupApp() {
           <input
             type="text"
             placeholder="방 번호 입력"
+            value={roomId}
+            onChange={(e) => setRoomId(e.target.value)}
             className="p-2 border rounded w-full mb-2"
           />
           <button
             type="button"
             className="p-2 bg-blue rounded-md w-full font-sans"
-            onClick={handleRoomButtonClick}
+            onClick={handleJoinRoomSubmit}
           >
             참여하기
           </button>
@@ -74,18 +117,21 @@ export default function PopupApp() {
           <input
             type="text"
             placeholder="방 번호 입력"
+            value={roomId}
+            onChange={(e) => setRoomId(e.target.value)}
             className="p-2 border rounded w-full mb-2"
           />
           <input
             type="text"
             placeholder="URL 입력"
-            className="p-2 border rounded w-full mb-2"
+            value={url}
             onChange={handleUrlChange}
+            className="p-2 border rounded w-full mb-2"
           />
           <button
             type="button"
             className="p-2 bg-blue rounded-md w-full font-sans"
-            onClick={handleRoomButtonClick}
+            onClick={handleCreateRoomSubmit}
           >
             공간 생성
           </button>
