@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAtom } from "jotai";
-import { htmlContentAtom } from "../atoms/atoms";
+import { htmlContentAtom, toastAtom } from "../atoms/atoms";
+import ToastPopup from "./ToastPopup";
 
 export default function PopupApp() {
   const [isShowCreateRoom, setIsShowCreateRoom] = useState(false);
@@ -8,6 +9,7 @@ export default function PopupApp() {
   const [url, setUrl] = useAtom(htmlContentAtom);
   const [roomId, setRoomId] = useState("");
   const [socket, setSocket] = useState(null);
+  const [, setToast] = useAtom(toastAtom);
 
   useEffect(() => {
     const ws = new WebSocket("https://73f0-14-52-239-67.ngrok-free.app");
@@ -40,6 +42,8 @@ export default function PopupApp() {
             chrome.tabs.sendMessage(tab.id, { action: "initContent" });
           });
         });
+      } else if (data.type === "error") {
+        setToast({ message: "이미 존재하는 방 입니다." });
       }
     };
     setSocket(ws);
@@ -61,14 +65,34 @@ export default function PopupApp() {
     setUrl(e.target.value);
   }
 
+  function checkInputs() {
+    if (!roomId.trim()) {
+      setToast({ message: "방 번호를 입력해주세요." });
+      return false;
+    }
+    if (roomId.includes(" ")) {
+      setToast({ message: "방 번호에 공백이 포함될 수 없습니다." });
+      return false;
+    }
+    if (!url.trim()) {
+      setToast({ message: "URL을 입력해주세요." });
+      return false;
+    }
+    if (url.includes(" ")) {
+      setToast({ message: "URL에 공백이 포함될 수 없습니다." });
+      return false;
+    }
+    return true;
+  }
+
   function handleCreateRoomSubmit() {
-    if (socket) {
+    if (checkInputs() && socket) {
       socket.send(JSON.stringify({ type: "createRoom", roomId, url }));
     }
   }
 
   function handleJoinRoomSubmit() {
-    if (socket) {
+    if (checkInputs() && socket) {
       socket.send(JSON.stringify({ type: "joinRoom", roomId }));
     }
   }
@@ -137,6 +161,7 @@ export default function PopupApp() {
           </button>
         </div>
       )}
+      <ToastPopup />
     </div>
   );
 }
