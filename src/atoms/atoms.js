@@ -1,5 +1,9 @@
 import { atom } from "jotai";
 
-const htmlContentAtom = atom("");
+export const htmlContentAtom = atom("");
 
-export default htmlContentAtom;
+export const zoomScaleAtom = atom(1);
+
+export const soundButtonAtom = atom(true);
+
+export const micButtonAtom = atom(true);

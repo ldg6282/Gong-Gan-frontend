@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAtom } from "jotai";
-import htmlContentAtom from "../atoms/atoms";
+import { htmlContentAtom } from "../atoms/atoms";
 
 export default function PopupApp() {
   const [isShowCreateRoom, setIsShowCreateRoom] = useState(false);
