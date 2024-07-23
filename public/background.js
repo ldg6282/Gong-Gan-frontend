@@ -1,14 +1,25 @@
-chrome.runtime.onMessage.addListener((request) => {
+let isExtensionActive = false;
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "toggleExtension") {
+    isExtensionActive = request.status;
+    sendResponse({ status: isExtensionActive });
+  }
+
+  if (request.action === "checkExtensionActive") {
+    sendResponse({ isActive: isExtensionActive });
+  }
+
   if (request.action === "initContent") {
-    handleInitContent();
+    if (isExtensionActive) {
+      chrome.scripting.executeScript({
+        target: { tabId: sender.tab.id },
+        files: ["content.js"],
+      });
+    }
+  }
+
+  if (request.action === "contentScriptLoaded") {
+    isExtensionActive = false;
   }
 });
-
-function handleInitContent() {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    const activeTab = tabs[0];
-    if (isValidTab(activeTab)) {
-      chrome.tabs.sendMessage(activeTab.id, { action: "initContent" });
-    }
-  });
-}

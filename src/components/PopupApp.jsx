@@ -13,39 +13,70 @@ export default function PopupApp() {
 
   useEffect(() => {
     const ws = new WebSocket("https://73f0-14-52-239-67.ngrok-free.app");
+
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      if (data.type === "roomCreated") {
-        setRoomId(data.roomId);
-        chrome.tabs.create({ url }, (tab) => {
-          chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
-            if (tabId === tab.id && info.status === "complete") {
-              chrome.tabs.onUpdated.removeListener(listener);
-              chrome.tabs.sendMessage(tabId, { action: "initContent" });
-            }
+
+      switch (data.type) {
+        case "roomCreated":
+          setRoomId(data.roomId);
+          chrome.tabs.create({ url }, (tab) => {
+            chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+              if (tabId === tab.id && info.status === "complete") {
+                chrome.tabs.onUpdated.removeListener(listener);
+                chrome.tabs.sendMessage(tabId, { action: "initContent" });
+              }
+            });
           });
-        });
-      } else if (data.type === "roomJoined") {
-        setUrl(data.url);
-        chrome.tabs.create({ url: data.url }, (tab) => {
-          chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
-            if (tabId === tab.id && info.status === "complete") {
-              chrome.tabs.onUpdated.removeListener(listener);
-              chrome.tabs.sendMessage(tabId, { action: "initContent" });
-            }
+          break;
+
+        case "roomJoined":
+          setUrl(data.url);
+          chrome.tabs.create({ url: data.url }, (tab) => {
+            chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+              if (tabId === tab.id && info.status === "complete") {
+                chrome.tabs.onUpdated.removeListener(listener);
+                chrome.tabs.sendMessage(tabId, { action: "initContent" });
+              }
+            });
           });
-        });
-      } else if (data.type === "roomUpdated") {
-        setUrl(data.url);
-        chrome.tabs.query({ url: data.url }, (tabs) => {
-          tabs.forEach((tab) => {
-            chrome.tabs.sendMessage(tab.id, { action: "initContent" });
+          break;
+
+        case "roomUpdated":
+          setUrl(data.url);
+          chrome.tabs.query({ url: data.url }, (tabs) => {
+            tabs.forEach((tab) => {
+              chrome.tabs.sendMessage(tab.id, { action: "initContent" });
+            });
           });
-        });
-      } else if (data.type === "error") {
-        setToast({ message: "이미 존재하는 방 입니다." });
+          break;
+
+        case "error":
+          switch (data.context) {
+            case "joinRoom":
+              if (data.errorCode === "roomNotFound") {
+                setToast({ message: "존재하지 않는 방입니다!" });
+              }
+              break;
+
+            case "createRoom":
+              if (data.errorCode === "roomAlreadyExists") {
+                setToast({ message: "이미 존재하는 방입니다!" });
+              }
+              break;
+
+            default:
+              setToast({ message: "오류가 발생했습니다. 다시 시도해주세요" });
+              break;
+          }
+          break;
+
+        default:
+          setToast({ message: "오류가 발생했습니다. 다시 시도해주세요" });
+          break;
       }
     };
+
     setSocket(ws);
 
     return () => ws.close();
@@ -65,35 +96,53 @@ export default function PopupApp() {
     setUrl(e.target.value);
   }
 
-  function checkInputs() {
-    if (!roomId.trim()) {
-      setToast({ message: "방 번호를 입력해주세요." });
-      return false;
+  function isValidUrlFormat(pageUrl) {
+    const urlPattern = /^(http:\/\/|https:\/\/|www\.)[^\s/$.?#].[^\s]*$/i;
+    return urlPattern.test(pageUrl);
+  }
+
+  function checkInputs(isJoinRoom) {
+    switch (true) {
+      case !roomId.trim():
+        setToast({ message: "방 번호를 입력해주세요." });
+        return false;
+
+      case roomId.includes(" "):
+        setToast({ message: "방 번호에 공백이 포함될 수 없습니다." });
+        return false;
+
+      case isJoinRoom && !url.trim():
+        setToast({ message: "URL을 입력해주세요." });
+        return false;
+
+      case isJoinRoom && url.includes(" "):
+        setToast({ message: "URL에 공백이 포함될 수 없습니다." });
+        return false;
+
+      case isJoinRoom && !isValidUrlFormat(url):
+        setToast({ message: "유효하지 않은 URL 형식입니다." });
+        return false;
+
+      default:
+        return true;
     }
-    if (roomId.includes(" ")) {
-      setToast({ message: "방 번호에 공백이 포함될 수 없습니다." });
-      return false;
-    }
-    if (!url.trim()) {
-      setToast({ message: "URL을 입력해주세요." });
-      return false;
-    }
-    if (url.includes(" ")) {
-      setToast({ message: "URL에 공백이 포함될 수 없습니다." });
-      return false;
-    }
-    return true;
+  }
+
+  function toggleExtension(status) {
+    chrome.runtime.sendMessage({ action: "toggleExtension", status });
   }
 
   function handleCreateRoomSubmit() {
-    if (checkInputs() && socket) {
+    if (checkInputs(true) && socket) {
       socket.send(JSON.stringify({ type: "createRoom", roomId, url }));
+      toggleExtension(true);
     }
   }
 
   function handleJoinRoomSubmit() {
-    if (checkInputs() && socket) {
+    if (checkInputs(false) && socket) {
       socket.send(JSON.stringify({ type: "joinRoom", roomId }));
+      toggleExtension(true);
     }
   }
 
