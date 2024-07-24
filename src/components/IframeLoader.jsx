@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useAtom } from "jotai";
 import { zoomScaleAtom, htmlContentAtom } from "../atoms/atoms";
+import ScrollSync from "./ScrollSync";
 
 export default function IframeLoader() {
   const iframeRef = useRef(null);
@@ -39,6 +40,7 @@ export default function IframeLoader() {
       >
         <iframe ref={iframeRef} title="Content Frame" className="w-full h-full" />
       </div>
+      <ScrollSync iframeRef={iframeRef} />
     </div>
   );
 }
