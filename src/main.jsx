@@ -7,11 +7,12 @@ import "./index.css";
 const rootElement = document.getElementById("GONG-GAN-ROOT");
 
 if (rootElement) {
+  const roomId = rootElement.getAttribute("data-room-id");
   const root = createRoot(rootElement);
   root.render(
     <StrictMode>
       <Provider>
-        <App />
+        <App roomId={roomId} />
       </Provider>
     </StrictMode>,
   );

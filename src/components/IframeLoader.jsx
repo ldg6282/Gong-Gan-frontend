@@ -3,7 +3,7 @@ import { useAtom } from "jotai";
 import { zoomScaleAtom, htmlContentAtom } from "../atoms/atoms";
 import ScrollSync from "./ScrollSync";
 
-export default function IframeLoader() {
+export default function IframeLoader({ roomId }) {
   const iframeRef = useRef(null);
   const [url] = useAtom(htmlContentAtom);
   const [scale] = useAtom(zoomScaleAtom);
@@ -40,7 +40,7 @@ export default function IframeLoader() {
       >
         <iframe ref={iframeRef} title="Content Frame" className="w-full h-full" />
       </div>
-      <ScrollSync iframeRef={iframeRef} />
+      <ScrollSync iframeRef={iframeRef} roomId={roomId} />
     </div>
   );
 }

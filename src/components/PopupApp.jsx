@@ -12,41 +12,32 @@ export default function PopupApp() {
   const [, setToast] = useAtom(toastAtom);
 
   useEffect(() => {
-    const ws = new WebSocket("https://73f0-14-52-239-67.ngrok-free.app");
+    const ws = new WebSocket("https://aa52-14-52-239-67.ngrok-free.app");
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
 
       switch (data.type) {
         case "roomCreated":
-          setRoomId(data.roomId);
+          chrome.storage.session.set({ roomId: data.roomId });
           chrome.tabs.create({ url }, (tab) => {
             chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
               if (tabId === tab.id && info.status === "complete") {
                 chrome.tabs.onUpdated.removeListener(listener);
-                chrome.tabs.sendMessage(tabId, { action: "initContent" });
+                chrome.tabs.sendMessage(tabId, { action: "initContent", roomId: data.roomId });
               }
             });
           });
           break;
 
         case "roomJoined":
-          setUrl(data.url);
+          chrome.storage.session.set({ roomId: data.roomId });
           chrome.tabs.create({ url: data.url }, (tab) => {
             chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
               if (tabId === tab.id && info.status === "complete") {
                 chrome.tabs.onUpdated.removeListener(listener);
-                chrome.tabs.sendMessage(tabId, { action: "initContent" });
+                chrome.tabs.sendMessage(tabId, { action: "initContent", roomId: data.roomId });
               }
-            });
-          });
-          break;
-
-        case "roomUpdated":
-          setUrl(data.url);
-          chrome.tabs.query({ url: data.url }, (tabs) => {
-            tabs.forEach((tab) => {
-              chrome.tabs.sendMessage(tab.id, { action: "initContent" });
             });
           });
           break;
@@ -135,14 +126,48 @@ export default function PopupApp() {
   function handleCreateRoomSubmit() {
     if (checkInputs(true) && socket) {
       socket.send(JSON.stringify({ type: "createRoom", roomId, url }));
-      toggleExtension(true);
+      chrome.runtime.sendMessage({ action: "setRoomId", roomId }, function (response) {
+        if (response && response.success) {
+          toggleExtension(true);
+          socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.type === "roomCreated") {
+              chrome.tabs.create({ url }, (tab) => {
+                chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+                  if (tabId === tab.id && info.status === "complete") {
+                    chrome.tabs.onUpdated.removeListener(listener);
+                    chrome.tabs.sendMessage(tabId, { action: "initContent", roomId });
+                  }
+                });
+              });
+            }
+          };
+        }
+      });
     }
   }
 
   function handleJoinRoomSubmit() {
     if (checkInputs(false) && socket) {
       socket.send(JSON.stringify({ type: "joinRoom", roomId }));
-      toggleExtension(true);
+      chrome.runtime.sendMessage({ action: "setRoomId", roomId }, function (response) {
+        if (response.success) {
+          toggleExtension(true);
+          socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.type === "roomJoined") {
+              chrome.tabs.create({ url: data.url }, (tab) => {
+                chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+                  if (tabId === tab.id && info.status === "complete") {
+                    chrome.tabs.onUpdated.removeListener(listener);
+                    chrome.tabs.sendMessage(tabId, { action: "initContent", roomId });
+                  }
+                });
+              });
+            }
+          };
+        }
+      });
     }
   }
 
