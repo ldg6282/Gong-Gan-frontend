@@ -1,7 +1,6 @@
-import { useEffect, useRef, useCallback, useState } from "react";
-import { throttle } from "lodash";
+import { useEffect, useRef, useState } from "react";
 
-export default function ScrollSync({ iframeRef, roomId }) {
+export default function ScrollSync({ iframeRef, roomId, userId }) {
   const socketRef = useRef(null);
   const lastScrollPositionRef = useRef({ top: 0, left: 0, verticalRatio: 0, horizontalRatio: 0 });
   const [isScrolling, setIsScrolling] = useState(false);
@@ -9,16 +8,16 @@ export default function ScrollSync({ iframeRef, roomId }) {
   useEffect(() => {
     if (socketRef.current || !roomId) return;
 
-    const ws = new WebSocket("https://aa52-14-52-239-67.ngrok-free.app");
+    const ws = new WebSocket("https://1612-14-52-239-67.ngrok-free.app");
     socketRef.current = ws;
 
     ws.onopen = () => {
-      ws.send(JSON.stringify({ type: "joinRoom", roomId }));
+      ws.send(JSON.stringify({ type: "joinRoom", roomId, userId }));
     };
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      if (data.type === "scrollUpdate" && !isScrolling) {
+      if (data.type === "scrollUpdate" && data.userId !== userId && !isScrolling) {
         syncScroll(data);
       }
     };
@@ -31,7 +30,7 @@ export default function ScrollSync({ iframeRef, roomId }) {
     };
   }, [roomId]);
 
-  const getScrollInfo = useCallback((iframe) => {
+  function getScrollInfo(iframe) {
     const iframeDoc = iframe.contentDocument;
     const { scrollTop } = iframeDoc.documentElement;
     const { scrollLeft } = iframeDoc.documentElement;
@@ -44,52 +43,45 @@ export default function ScrollSync({ iframeRef, roomId }) {
       verticalRatio: scrollHeight > 0 ? scrollTop / scrollHeight : 0,
       horizontalRatio: scrollWidth > 0 ? scrollLeft / scrollWidth : 0,
     };
-  }, []);
+  }
 
-  const syncScroll = useCallback(
-    (data) => {
-      const iframe = iframeRef.current;
-      if (!iframe || !iframe.contentDocument) return;
+  function syncScroll(data) {
+    if (data.userId === userId) return;
+    const iframe = iframeRef.current;
+    if (!iframe || !iframe.contentDocument) return;
 
-      const iframeDoc = iframe.contentDocument;
-      const scrollHeight = iframeDoc.documentElement.scrollHeight - iframe.clientHeight;
-      const scrollWidth = iframeDoc.documentElement.scrollWidth - iframe.clientWidth;
+    const iframeDoc = iframe.contentDocument;
+    const { scrollHeight, scrollWidth, clientHeight, clientWidth } = iframeDoc.documentElement;
 
-      iframeDoc.documentElement.scrollTop = data.verticalRatio * scrollHeight;
-      iframeDoc.documentElement.scrollLeft = data.horizontalRatio * scrollWidth;
-      lastScrollPositionRef.current = data;
-    },
-    [iframeRef],
-  );
+    iframeDoc.documentElement.scrollTop = data.verticalRatio * (scrollHeight - clientHeight);
+    iframeDoc.documentElement.scrollLeft = data.horizontalRatio * (scrollWidth - clientWidth);
+    lastScrollPositionRef.current = data;
+  }
 
-  const handleScroll = useCallback(
-    throttle(() => {
-      const iframe = iframeRef.current;
-      if (!iframe || !iframe.contentDocument || !roomId) return;
+  function handleScroll() {
+    const iframe = iframeRef.current;
+    if (!iframe || !iframe.contentDocument || !roomId) return;
 
-      const currentInfo = getScrollInfo(iframe);
-      const lastPosition = lastScrollPositionRef.current;
+    const currentInfo = getScrollInfo(iframe);
+    const lastPosition = lastScrollPositionRef.current;
 
-      const deltaVertical = currentInfo.verticalRatio - lastPosition.verticalRatio;
-      const deltaHorizontal = currentInfo.horizontalRatio - lastPosition.horizontalRatio;
+    if (
+      currentInfo.verticalRatio !== lastPosition.verticalRatio ||
+      currentInfo.horizontalRatio !== lastPosition.horizontalRatio
+    ) {
+      const scrollData = {
+        type: "scrollUpdate",
+        roomId,
+        userId,
+        ...currentInfo,
+      };
 
-      if (Math.abs(deltaVertical) > 0.005 || Math.abs(deltaHorizontal) > 0.005) {
-        const scrollData = {
-          type: "scrollUpdate",
-          roomId,
-          deltaVertical,
-          deltaHorizontal,
-          ...currentInfo,
-        };
-
-        if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-          socketRef.current.send(JSON.stringify(scrollData));
-          lastScrollPositionRef.current = currentInfo;
-        }
+      if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+        socketRef.current.send(JSON.stringify(scrollData));
+        lastScrollPositionRef.current = currentInfo;
       }
-    }, 50),
-    [getScrollInfo, iframeRef, roomId],
-  );
+    }
+  }
 
   useEffect(() => {
     const iframe = iframeRef.current;
