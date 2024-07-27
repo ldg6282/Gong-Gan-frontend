@@ -2,12 +2,21 @@ import { useEffect, useRef, useState } from "react";
 import { useAtom } from "jotai";
 import { zoomScaleAtom, htmlContentAtom } from "../atoms/atoms";
 import ScrollSync from "./ScrollSync";
+import ClickSync from "./ClickSync";
 
 export default function IframeLoader({ roomId }) {
   const iframeRef = useRef(null);
   const [url] = useAtom(htmlContentAtom);
   const [scale] = useAtom(zoomScaleAtom);
+  const [userId, setUserId] = useState("");
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    if (!userId) {
+      const newUserId = `user_${Math.random().toString(36).slice(2, 11)}`;
+      setUserId(newUserId);
+    }
+  }, [userId]);
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -40,7 +49,8 @@ export default function IframeLoader({ roomId }) {
       >
         <iframe ref={iframeRef} title="Content Frame" className="w-full h-full" />
       </div>
-      <ScrollSync iframeRef={iframeRef} roomId={roomId} />
+      <ScrollSync iframeRef={iframeRef} roomId={roomId} userId={userId} />
+      <ClickSync iframeRef={iframeRef} roomId={roomId} userId={userId} />
     </div>
   );
 }
