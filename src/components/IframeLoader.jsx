@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useAtom } from "jotai";
-import { zoomScaleAtom, htmlContentAtom } from "../atoms/atoms";
+import { zoomScaleAtom, htmlContentAtom, userIdAtom } from "../atoms/atoms";
 import ScrollSync from "./ScrollSync";
 import ClickSync from "./ClickSync";
+import VoiceChat from "./VoiceChat";
 
 export default function IframeLoader({ roomId }) {
   const iframeRef = useRef(null);
   const [url] = useAtom(htmlContentAtom);
   const [scale] = useAtom(zoomScaleAtom);
-  const [userId, setUserId] = useState("");
+  const [userId, setUserId] = useAtom(userIdAtom);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
@@ -49,8 +50,9 @@ export default function IframeLoader({ roomId }) {
       >
         <iframe ref={iframeRef} title="Content Frame" className="w-full h-full" />
       </div>
-      <ScrollSync iframeRef={iframeRef} roomId={roomId} userId={userId} />
-      <ClickSync iframeRef={iframeRef} roomId={roomId} userId={userId} />
+      <ScrollSync iframeRef={iframeRef} roomId={roomId} />
+      <ClickSync iframeRef={iframeRef} roomId={roomId} />
+      <VoiceChat roomId={roomId} />
     </div>
   );
 }

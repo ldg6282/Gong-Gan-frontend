@@ -1,7 +1,10 @@
 import { useEffect, useRef, useCallback, useState } from "react";
+import { useAtom } from "jotai";
 import { debounce } from "lodash";
+import { userIdAtom } from "../atoms/atoms";
 
-export default function ClickSync({ iframeRef, roomId, userId }) {
+export default function ClickSync({ iframeRef, roomId }) {
+  const [userId] = useAtom(userIdAtom);
   const socketRef = useRef(null);
   const lastUrlRef = useRef("");
   const clickListenerRef = useRef(null);

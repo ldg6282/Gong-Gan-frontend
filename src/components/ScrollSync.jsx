@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import { useAtom } from "jotai";
+import { userIdAtom } from "../atoms/atoms";
 
-export default function ScrollSync({ iframeRef, roomId, userId }) {
+export default function ScrollSync({ iframeRef, roomId }) {
+  const [userId] = useAtom(userIdAtom);
+  const [isScrolling, setIsScrolling] = useState(false);
   const socketRef = useRef(null);
   const lastScrollPositionRef = useRef({ top: 0, left: 0, verticalRatio: 0, horizontalRatio: 0 });
-  const [isScrolling, setIsScrolling] = useState(false);
 
   useEffect(() => {
     if (socketRef.current || !roomId) return;
