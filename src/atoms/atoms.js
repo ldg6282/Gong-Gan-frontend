@@ -11,3 +11,7 @@ export const micButtonAtom = atom(true);
 export const toastAtom = atom({ message: "", type: "info" });
 
 export const userIdAtom = atom("");
+
+export const volumeAtom = atom(50);
+
+export const micVolumeAtom = atom(50);

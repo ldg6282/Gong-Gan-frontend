@@ -3,15 +3,21 @@ import { LuEraser, LuMic, LuMicOff, LuPenTool } from "react-icons/lu";
 import { HiMagnifyingGlassMinus, HiMagnifyingGlassPlus } from "react-icons/hi2";
 import { VscUnmute, VscMute } from "react-icons/vsc";
 import { useState } from "react";
-import { soundButtonAtom, micButtonAtom, zoomScaleAtom } from "../atoms/atoms";
+import {
+  soundButtonAtom,
+  micButtonAtom,
+  zoomScaleAtom,
+  volumeAtom,
+  micVolumeAtom,
+} from "../atoms/atoms";
 
 export default function ButtonGroup() {
   const [isSoundButtonVisible, setIsSoundButtonVisible] = useAtom(soundButtonAtom);
   const [isMicButtonVisible, setIsMicButtonVisible] = useAtom(micButtonAtom);
   const [, setScale] = useAtom(zoomScaleAtom);
-  const [volume, setVolume] = useState(50);
+  const [volume, setVolume] = useAtom(volumeAtom);
+  const [micVolume, setMicVolume] = useAtom(micVolumeAtom);
   const [previousVolume, setPreviousVolume] = useState(50);
-  const [micVolume, setMicVolume] = useState(50);
   const [previousMicVolume, setPreviousMicVolume] = useState(50);
   const [showVolumeBar, setShowVolumeBar] = useState(false);
   const [showMicVolumeBar, setShowMicVolumeBar] = useState(false);
