@@ -55,14 +55,14 @@ export default function ButtonGroup() {
 
   function zoomIn() {
     setScale((prevScale) => {
-      const newScale = Math.min(prevScale + 0.1, 1.2);
+      const newScale = Math.min(prevScale + 0.1, 1.1);
       return newScale;
     });
   }
 
   function zoomOut() {
     setScale((prevScale) => {
-      const newScale = Math.max(prevScale - 0.1, 0.7);
+      const newScale = Math.max(prevScale - 0.1, 0.8);
       return newScale;
     });
   }
