@@ -41,12 +41,13 @@ export default function IframeLoader({ roomId }) {
   return (
     <div className="relative flex justify-center items-center h-screen w-screen">
       <div
-        className="relative p-10 bg-blue rounded"
+        className="relative border-8 border-blue rounded"
         style={{
           width: `${dimensions.width * 0.7}px`,
           height: `${dimensions.height * 0.8}px`,
           transform: `scale(${scale})`,
           transformOrigin: "center",
+          top: "-2.5vh",
         }}
       >
         <iframe ref={iframeRef} title="Content Frame" className="w-full h-full" />

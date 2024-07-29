@@ -20,7 +20,7 @@ export default function ToastPopup() {
   if (!toast.message) return null;
 
   return (
-    <div className="fixed w-80 h-12 top-4 pt-2.5 left-1/2 transform -translate-x-1/2 bg-blue font-sans text-center text-lg rounded">
+    <div className="fixed w-80 h-12 top-4 pt-2 left-1/2 transform -translate-x-1/2 bg-cream border-2 border-blue font-sans text-center text-lg rounded">
       {toast.message}
     </div>
   );
