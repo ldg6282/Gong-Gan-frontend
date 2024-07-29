@@ -11,62 +11,10 @@ export default function PopupApp() {
   const [socket, setSocket] = useState(null);
   const [, setToast] = useAtom(toastAtom);
 
+  const randomRoomId = Math.random().toString(36).slice(2, 11);
+
   useEffect(() => {
-    const ws = new WebSocket("https://aa52-14-52-239-67.ngrok-free.app");
-
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-
-      switch (data.type) {
-        case "roomCreated":
-          chrome.storage.session.set({ roomId: data.roomId });
-          chrome.tabs.create({ url }, (tab) => {
-            chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
-              if (tabId === tab.id && info.status === "complete") {
-                chrome.tabs.onUpdated.removeListener(listener);
-                chrome.tabs.sendMessage(tabId, { action: "initContent", roomId: data.roomId });
-              }
-            });
-          });
-          break;
-
-        case "roomJoined":
-          chrome.storage.session.set({ roomId: data.roomId });
-          chrome.tabs.create({ url: data.url }, (tab) => {
-            chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
-              if (tabId === tab.id && info.status === "complete") {
-                chrome.tabs.onUpdated.removeListener(listener);
-                chrome.tabs.sendMessage(tabId, { action: "initContent", roomId: data.roomId });
-              }
-            });
-          });
-          break;
-
-        case "error":
-          switch (data.context) {
-            case "joinRoom":
-              if (data.errorCode === "roomNotFound") {
-                setToast({ message: "존재하지 않는 방입니다!" });
-              }
-              break;
-
-            case "createRoom":
-              if (data.errorCode === "roomAlreadyExists") {
-                setToast({ message: "이미 존재하는 방입니다!" });
-              }
-              break;
-
-            default:
-              setToast({ message: "오류가 발생했습니다. 다시 시도해주세요" });
-              break;
-          }
-          break;
-
-        default:
-          setToast({ message: "오류가 발생했습니다. 다시 시도해주세요" });
-          break;
-      }
-    };
+    const ws = new WebSocket("https://52f3-14-52-239-67.ngrok-free.app");
 
     setSocket(ws);
 
@@ -76,6 +24,7 @@ export default function PopupApp() {
   function handleCreateRoom() {
     setIsShowCreateRoom(true);
     setIsShowJoinRoom(false);
+    setRoomId(randomRoomId);
   }
 
   function handleJoinRoom() {
@@ -95,23 +44,23 @@ export default function PopupApp() {
   function checkInputs(isJoinRoom) {
     switch (true) {
       case !roomId.trim():
-        setToast({ message: "방 번호를 입력해주세요." });
+        setToast({ message: "방 번호를 입력해주세요.", type: "error" });
         return false;
 
       case roomId.includes(" "):
-        setToast({ message: "방 번호에 공백이 포함될 수 없습니다." });
+        setToast({ message: "방 번호에 공백이 포함될 수 없습니다.", type: "error" });
         return false;
 
       case isJoinRoom && !url.trim():
-        setToast({ message: "URL을 입력해주세요." });
+        setToast({ message: "URL을 입력해주세요.", type: "error" });
         return false;
 
       case isJoinRoom && url.includes(" "):
-        setToast({ message: "URL에 공백이 포함될 수 없습니다." });
+        setToast({ message: "URL에 공백이 포함될 수 없습니다.", type: "error" });
         return false;
 
       case isJoinRoom && !isValidUrlFormat(url):
-        setToast({ message: "유효하지 않은 URL 형식입니다." });
+        setToast({ message: "유효하지 않은 URL 형식입니다.", type: "error" });
         return false;
 
       default:
@@ -164,6 +113,16 @@ export default function PopupApp() {
                   }
                 });
               });
+            } else if (data.type === "error" && data.context === "joinRoom") {
+              if (data.errorCode === "roomNotFound") {
+                setToast({ message: "존재하지 않는 방입니다!", type: "error" });
+              } else {
+                setToast({
+                  message: data.message || "방 참여 중 오류가 발생했습니다.",
+                  type: "error",
+                });
+              }
+              socket.onmessage = null;
             }
           };
         }
@@ -214,10 +173,9 @@ export default function PopupApp() {
           <h2 className="text-lg mb-2 font-sans">공간 생성</h2>
           <input
             type="text"
-            placeholder="방 번호 입력"
             value={roomId}
-            onChange={(e) => setRoomId(e.target.value)}
-            className="p-2 border rounded w-full mb-2"
+            readOnly
+            className="p-2 border rounded w-full mb-2 bg-gray-100"
           />
           <input
             type="text"
