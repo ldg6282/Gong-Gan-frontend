@@ -4,6 +4,7 @@ import { zoomScaleAtom, htmlContentAtom, userIdAtom } from "../atoms/atoms";
 import ScrollSync from "./ScrollSync";
 import ClickSync from "./ClickSync";
 import VoiceChat from "./VoiceChat";
+import DrawingSync from "./DrawingSync";
 
 export default function IframeLoader({ roomId }) {
   const iframeRef = useRef(null);
@@ -49,6 +50,7 @@ export default function IframeLoader({ roomId }) {
         }}
       >
         <iframe ref={iframeRef} title="Content Frame" className="w-full h-full" />
+        <DrawingSync iframeRef={iframeRef} roomId={roomId} />
       </div>
       <ScrollSync iframeRef={iframeRef} roomId={roomId} />
       <ClickSync iframeRef={iframeRef} roomId={roomId} />
