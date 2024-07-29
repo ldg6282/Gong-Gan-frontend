@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useAtom } from "jotai";
 import { userIdAtom } from "../atoms/atoms";
 
 export default function ScrollSync({ iframeRef, roomId }) {
   const [userId] = useAtom(userIdAtom);
-  const [isScrolling, setIsScrolling] = useState(false);
   const socketRef = useRef(null);
   const lastScrollPositionRef = useRef({ top: 0, left: 0, verticalRatio: 0, horizontalRatio: 0 });
+  const isScrollRef = useRef(false);
 
   useEffect(() => {
     if (socketRef.current || !roomId) return;
@@ -20,7 +20,7 @@ export default function ScrollSync({ iframeRef, roomId }) {
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      if (data.type === "scrollUpdate" && data.userId !== userId && !isScrolling) {
+      if (data.type === "scrollUpdate" && data.userId !== userId && !isScrollRef.current) {
         syncScroll(data);
       }
     };
@@ -31,39 +31,42 @@ export default function ScrollSync({ iframeRef, roomId }) {
       }
       socketRef.current = null;
     };
-  }, [roomId]);
+  }, [roomId, userId]);
 
-  function getScrollInfo(iframe) {
+  const getScrollInfo = useCallback((iframe) => {
     const iframeDoc = iframe.contentDocument;
-    const { scrollTop } = iframeDoc.documentElement;
-    const { scrollLeft } = iframeDoc.documentElement;
-    const scrollHeight = iframeDoc.documentElement.scrollHeight - iframe.clientHeight;
-    const scrollWidth = iframeDoc.documentElement.scrollWidth - iframe.clientWidth;
+    const { scrollTop, scrollLeft, scrollHeight, scrollWidth, clientHeight, clientWidth } =
+      iframeDoc.documentElement;
 
     return {
       top: scrollTop,
       left: scrollLeft,
-      verticalRatio: scrollHeight > 0 ? scrollTop / scrollHeight : 0,
-      horizontalRatio: scrollWidth > 0 ? scrollLeft / scrollWidth : 0,
+      verticalRatio: scrollHeight > clientHeight ? scrollTop / (scrollHeight - clientHeight) : 0,
+      horizontalRatio: scrollWidth > clientWidth ? scrollLeft / (scrollWidth - clientWidth) : 0,
     };
-  }
+  }, []);
 
-  function syncScroll(data) {
-    if (data.userId === userId) return;
-    const iframe = iframeRef.current;
-    if (!iframe || !iframe.contentDocument) return;
+  const syncScroll = useCallback(
+    (data) => {
+      if (data.userId === userId) return;
+      const iframe = iframeRef.current;
+      if (!iframe || !iframe.contentDocument) return;
 
-    const iframeDoc = iframe.contentDocument;
-    const { scrollHeight, scrollWidth, clientHeight, clientWidth } = iframeDoc.documentElement;
+      const iframeDoc = iframe.contentDocument;
+      const { scrollHeight, scrollWidth, clientHeight, clientWidth } = iframeDoc.documentElement;
 
-    iframeDoc.documentElement.scrollTop = data.verticalRatio * (scrollHeight - clientHeight);
-    iframeDoc.documentElement.scrollLeft = data.horizontalRatio * (scrollWidth - clientWidth);
-    lastScrollPositionRef.current = data;
-  }
+      iframeDoc.documentElement.scrollTop = data.verticalRatio * (scrollHeight - clientHeight);
+      iframeDoc.documentElement.scrollLeft = data.horizontalRatio * (scrollWidth - clientWidth);
+      lastScrollPositionRef.current = data;
+    },
+    [iframeRef, userId],
+  );
 
-  function handleScroll() {
+  const handleScroll = useCallback(() => {
     const iframe = iframeRef.current;
     if (!iframe || !iframe.contentDocument || !roomId) return;
+
+    isScrollRef.current = true;
 
     const currentInfo = getScrollInfo(iframe);
     const lastPosition = lastScrollPositionRef.current;
@@ -84,7 +87,9 @@ export default function ScrollSync({ iframeRef, roomId }) {
         lastScrollPositionRef.current = currentInfo;
       }
     }
-  }
+
+    isScrollRef.current = false;
+  }, [getScrollInfo, roomId, userId]);
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -92,8 +97,6 @@ export default function ScrollSync({ iframeRef, roomId }) {
       const handleIframeLoad = () => {
         const iframeDoc = iframe.contentDocument;
         iframeDoc.addEventListener("scroll", handleScroll);
-        iframeDoc.addEventListener("mousedown", () => setIsScrolling(true));
-        iframeDoc.addEventListener("mouseup", () => setIsScrolling(false));
       };
 
       iframe.addEventListener("load", handleIframeLoad);
@@ -102,8 +105,6 @@ export default function ScrollSync({ iframeRef, roomId }) {
         const iframeDoc = iframe.contentDocument;
         if (iframeDoc) {
           iframeDoc.removeEventListener("scroll", handleScroll);
-          iframeDoc.removeEventListener("mousedown", () => setIsScrolling(true));
-          iframeDoc.removeEventListener("mouseup", () => setIsScrolling(false));
         }
         iframe.removeEventListener("load", handleIframeLoad);
       };
