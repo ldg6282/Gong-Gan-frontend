@@ -15,3 +15,7 @@ export const userIdAtom = atom("");
 export const volumeAtom = atom(50);
 
 export const micVolumeAtom = atom(50);
+
+export const seletedColorAtom = atom("#000000");
+
+export const penToolAtom = atom(false);
