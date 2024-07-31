@@ -16,7 +16,9 @@ export default function DrawingSync({ iframeRef, roomId }) {
   const connectWebSocket = useCallback(() => {
     if (socketRef.current?.readyState === WebSocket.OPEN) return;
 
-    const ws = new WebSocket("https://52f3-14-52-239-67.ngrok-free.app");
+    const WS_SERVER_URL = import.meta.env.VITE_WS_SERVER_URL;
+    const ws = new WebSocket(WS_SERVER_URL);
+
     ws.onopen = () => ws.send(JSON.stringify({ type: "joinRoom", roomId, userId }));
     ws.onmessage = handleWebSocketMessage;
     socketRef.current = ws;
@@ -107,8 +109,10 @@ export default function DrawingSync({ iframeRef, roomId }) {
 
       const canvas = canvasRef.current;
       const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
 
       setIsDrawing(true);
       const lineId = Date.now().toString();
@@ -126,8 +130,10 @@ export default function DrawingSync({ iframeRef, roomId }) {
 
       const canvas = canvasRef.current;
       const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
 
       currentLineRef.current.points.push({ x, y });
       drawLine(canvas.getContext("2d"), currentLineRef.current);
@@ -196,7 +202,7 @@ export default function DrawingSync({ iframeRef, roomId }) {
   }, [startDrawing, draw, stopDrawing]);
 
   useEffect(() => {
-    const resizeCanvas = () => {
+    function resizeCanvas() {
       if (iframeRef.current) {
         const rect = iframeRef.current.getBoundingClientRect();
         containerRef.current.style.width = `${rect.width}px`;
@@ -205,14 +211,18 @@ export default function DrawingSync({ iframeRef, roomId }) {
         canvasRef.current.height = rect.height;
         redrawCanvas();
       }
-    };
+    }
 
-    const timeoutId = setTimeout(resizeCanvas, 0);
+    const resizeObserver = new ResizeObserver(resizeCanvas);
+    if (iframeRef.current) {
+      resizeObserver.observe(iframeRef.current);
+    }
+
     window.addEventListener("resize", resizeCanvas);
 
     return () => {
+      resizeObserver.disconnect();
       window.removeEventListener("resize", resizeCanvas);
-      clearTimeout(timeoutId);
     };
   }, [iframeRef, redrawCanvas]);
 
