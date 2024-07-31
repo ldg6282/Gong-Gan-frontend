@@ -15,7 +15,8 @@ export default function ClickSync({ iframeRef, roomId }) {
       return;
     }
 
-    const ws = new WebSocket("https://1612-14-52-239-67.ngrok-free.app");
+    const WS_SERVER_URL = import.meta.env.VITE_WS_SERVER_URL;
+    const ws = new WebSocket(WS_SERVER_URL);
 
     ws.onopen = () => {
       ws.send(JSON.stringify({ type: "joinRoom", roomId, userId }));

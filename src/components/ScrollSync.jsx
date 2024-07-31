@@ -54,7 +54,8 @@ export default function ScrollSync({ iframeRef, roomId }) {
   useEffect(() => {
     if (socketRef.current || !roomId) return;
 
-    const ws = new WebSocket("https://gong-gan-backend.onrender.com");
+    const WS_SERVER_URL = import.meta.env.VITE_WS_SERVER_URL;
+    const ws = new WebSocket(WS_SERVER_URL);
     socketRef.current = ws;
 
     ws.onopen = () => {

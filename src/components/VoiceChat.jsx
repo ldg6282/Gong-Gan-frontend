@@ -22,7 +22,8 @@ export default function VoiceChat({ roomId }) {
   const gainNodeRef = useRef(null);
 
   const connectWebSocket = useCallback(() => {
-    socketRef.current = new WebSocket("https://33e2-14-52-239-67.ngrok-free.app");
+    const WS_SERVER_URL = import.meta.env.VITE_WS_SERVER_URL;
+    socketRef.current = new WebSocket(WS_SERVER_URL);
 
     socketRef.current.onopen = () => {
       socketRef.current.send(JSON.stringify({ type: "joinRoom", roomId, userId }));

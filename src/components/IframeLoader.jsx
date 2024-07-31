@@ -51,7 +51,18 @@ export default function IframeLoader({ roomId }) {
         }}
       >
         <iframe ref={iframeRef} title="Content Frame" className="w-full h-full" />
-        <DrawingSync iframeRef={iframeRef} roomId={roomId} />
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            pointerEvents: "none",
+          }}
+        >
+          <DrawingSync iframeRef={iframeRef} roomId={roomId} />
+        </div>
       </div>
       <ScrollSync iframeRef={iframeRef} roomId={roomId} />
       <ClickSync iframeRef={iframeRef} roomId={roomId} />

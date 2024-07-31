@@ -14,7 +14,8 @@ export default function PopupApp() {
   const randomRoomId = Math.random().toString(36).slice(2, 11);
 
   useEffect(() => {
-    const ws = new WebSocket("https://52f3-14-52-239-67.ngrok-free.app");
+    const WS_SERVER_URL = import.meta.env.VITE_WS_SERVER_URL;
+    const ws = new WebSocket(WS_SERVER_URL);
 
     setSocket(ws);
 
@@ -157,6 +158,12 @@ export default function PopupApp() {
             placeholder="방 번호 입력"
             value={roomId}
             onChange={(e) => setRoomId(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleJoinRoomSubmit();
+              }
+            }}
             className="p-2 border rounded w-full mb-2"
           />
           <button
@@ -182,6 +189,12 @@ export default function PopupApp() {
             placeholder="URL 입력"
             value={url}
             onChange={handleUrlChange}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleCreateRoomSubmit();
+              }
+            }}
             className="p-2 border rounded w-full mb-2"
           />
           <button
