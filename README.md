@@ -3,7 +3,7 @@
 Gong-Gan은 여러 명의 사용자가 협업할 수 있는 공간을 제공하는 크롬 익스텐션입니다!<br>
 실시간 클릭 이벤트, 스크롤 이벤트, 음성 채팅, 공유 캔버스를 이용해 로컬 브라우저에서 다른 사용자와 상호작용 할 수 있습니다.<br>
 Gong-Gan을 통해 여러 사용자와 원활하게 협업하고 소통하세요!
-<br>
+<br><br><br>
 
 # 🔨 Tech Stacks
 
@@ -71,8 +71,7 @@ Gong-Gan 프로젝트는 화면 공유에서 더 나아갈 수 없을까? 하는
    "스크롤 조금만 내려봐", "여기 클릭해 봐"와 같은 요청을 주고받는 과정에서 "어디? 여기?"와 같은 소통이 잘되지 않는 답답함을 자주 느꼈습니다. 직접 조작할 수 없는 상황에서는 효과적인 소통과 협업이 어려웠습니다.<br><br>
 
 위와 같은 이유로 "화면을 공유하지 않고도 다른 사람들과 어떻게 원활하게 협업할 수 있을까?"라는 고민을 하게 되었습니다. 이러한 고민 끝에, 로컬 브라우저에서 다른 사용자와 실시간으로 상호작용을 하고 다양한 기능을 제공하는 프로젝트를 시작하게 되었습니다.<br>
-
-<br><br><br>
+<br><br>
 
 # ✨ Features
 
@@ -83,7 +82,7 @@ Gong-Gan 프로젝트는 화면 공유에서 더 나아갈 수 없을까? 하는
 <details>
 <summary>🔎 미리보기</summary>
 <p align="center">
-<img src="https://postfiles.pstatic.net/MjAyNDA4MDhfMTA0/MDAxNzIzMDU1NDU0ODgx.4xQDUKA4kwYG81sBdq5LvC_sW-nr8J1FoMSKZiPGeXgg.ynMOmnhhoXlfnjVGowyF3hM8Qa5zqgBh89mNAniozS0g.GIF/%EB%B0%A9_%EC%83%9D%EC%84%B1.gif?type=w3840" width="600">
+<img src="https://postfiles.pstatic.net/MjAyNDA4MDhfMTA0/MDAxNzIzMDU1NDU0ODgx.4xQDUKA4kwYG81sBdq5LvC_sW-nr8J1FoMSKZiPGeXgg.ynMOmnhhoXlfnjVGowyF3hM8Qa5zqgBh89mNAniozS0g.GIF/%EB%B0%A9_%EC%83%9D%EC%84%B1.gif?type=w3840" width="800">
 </p>
 </details>
 <br>
@@ -95,7 +94,7 @@ Gong-Gan 프로젝트는 화면 공유에서 더 나아갈 수 없을까? 하는
 <details>
 <summary>🔎 미리보기</summary>
 <p align="center">
-<img src="https://postfiles.pstatic.net/MjAyNDA4MDhfMTkg/MDAxNzIzMDU0OTU1NTM1.b2gZgIRVKvUr-SpgrewHV_pkbCRIN7Wg__4BN9uIeUAg.V1KJsYh2_tLzUPSbgmT36Bz3XuuNpvni3TFZSPUaR9Ug.GIF/%EC%B0%B8%EC%97%AC%ED%95%98%EA%B8%B0.gif?type=w3840" width="600">
+<img src="https://postfiles.pstatic.net/MjAyNDA4MDhfMTkg/MDAxNzIzMDU0OTU1NTM1.b2gZgIRVKvUr-SpgrewHV_pkbCRIN7Wg__4BN9uIeUAg.V1KJsYh2_tLzUPSbgmT36Bz3XuuNpvni3TFZSPUaR9Ug.GIF/%EC%B0%B8%EC%97%AC%ED%95%98%EA%B8%B0.gif?type=w3840" width="800">
 </p>
 </details>
 <br>
@@ -109,7 +108,7 @@ Gong-Gan 프로젝트는 화면 공유에서 더 나아갈 수 없을까? 하는
 <details>
 <summary>🔎 미리보기</summary>
 <p align="center">
-<img src="https://postfiles.pstatic.net/MjAyNDA4MDhfMjY1/MDAxNzIzMDU3MzU5NDk1.Ksf5F47C9Y3819eA0m9_LA52j-N03woN9DD51n2U6dYg.ng9-_v5iybKkHtYgyR-pM2kJpVWXY7Vy6rOd4rT4O3Ag.GIF/%EB%B0%B1%EB%B6%84%EC%9C%A8_%EC%8A%A4%ED%81%AC%EB%A1%A4.gif?type=w3840" width="600">
+<img src="https://postfiles.pstatic.net/MjAyNDA4MDhfMjY1/MDAxNzIzMDU3MzU5NDk1.Ksf5F47C9Y3819eA0m9_LA52j-N03woN9DD51n2U6dYg.ng9-_v5iybKkHtYgyR-pM2kJpVWXY7Vy6rOd4rT4O3Ag.GIF/%EB%B0%B1%EB%B6%84%EC%9C%A8_%EC%8A%A4%ED%81%AC%EB%A1%A4.gif?type=w3840" width="800">
 </p>
 </details>
 <br>
@@ -123,7 +122,7 @@ Gong-Gan 프로젝트는 화면 공유에서 더 나아갈 수 없을까? 하는
 <details>
 <summary>🔎 미리보기</summary>
 <p align="center">
-<img src="https://postfiles.pstatic.net/MjAyNDA4MDhfMjcw/MDAxNzIzMDU3MzU5MzA2.B4JpMYBx1Ln7F2_e-sKqt6MnhCouAV6z84eFUaBJQgUg.W34wXFk5wLtIyX0qNdNl591CYa3b4DCmObnjBOdjO10g.GIF/%EC%83%81%EB%8C%80_%EC%A2%8C%ED%91%9C.gif?type=w3840" width="600">
+<img src="https://postfiles.pstatic.net/MjAyNDA4MDhfMjcw/MDAxNzIzMDU3MzU5MzA2.B4JpMYBx1Ln7F2_e-sKqt6MnhCouAV6z84eFUaBJQgUg.W34wXFk5wLtIyX0qNdNl591CYa3b4DCmObnjBOdjO10g.GIF/%EC%83%81%EB%8C%80_%EC%A2%8C%ED%91%9C.gif?type=w3840" width="800">
 </p>
 </details>
 <br>
@@ -152,7 +151,7 @@ Gong-Gan 프로젝트는 화면 공유에서 더 나아갈 수 없을까? 하는
 <details>
 <summary>🔎 미리보기</summary>
 <p align="center">
-<img src="https://postfiles.pstatic.net/MjAyNDA4MDhfOTMg/MDAxNzIzMDU1NDU0OTE0.soN5qd70GpNIwxwmZsFzVBkxwFNf5Ze6JsVzOn--xm4g.49cRCuRsSBhXYz1ljXWPse3vx-f8ENk5iaBtKAl8U4og.GIF/%EA%B3%B5%EC%9C%A0%EC%BA%94%EB%B2%84%EC%8A%A4.gif?type=w3840" width="600">
+<img src="https://postfiles.pstatic.net/MjAyNDA4MDhfOTMg/MDAxNzIzMDU1NDU0OTE0.soN5qd70GpNIwxwmZsFzVBkxwFNf5Ze6JsVzOn--xm4g.49cRCuRsSBhXYz1ljXWPse3vx-f8ENk5iaBtKAl8U4og.GIF/%EA%B3%B5%EC%9C%A0%EC%BA%94%EB%B2%84%EC%8A%A4.gif?type=w3840" width="800">
 </p>
 </details>
 <br>
@@ -161,7 +160,7 @@ Gong-Gan 프로젝트는 화면 공유에서 더 나아갈 수 없을까? 하는
 - 펜 아이콘을 클릭하여 iframe 화면 위에 그림을 그리면 다른 사용자의 iframe 화면에도 같은 위치에 그림이 그려집니다.
 - 색상 선택 버튼을 통해 펜의 색상을 선택하여 그림을 그릴 수 있습니다.
   <br><br><br>
-
+  
 # 🔥 Challenge
 
 ## **Web 🆚 Chrome Extention**
