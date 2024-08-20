@@ -77,41 +77,17 @@ Gong-Gan 프로젝트는 화면 공유에서 더 나아갈 수 없을까? 하는
 
 ### 1. 브라우저 액션 팝업
 
-1-1 공간 생성
+  1-1 공간 생성
 
-<details>
-<summary>🔎 미리보기</summary>
-<p align="center">
-<img src="https://postfiles.pstatic.net/MjAyNDA4MDhfMTA0/MDAxNzIzMDU1NDU0ODgx.4xQDUKA4kwYG81sBdq5LvC_sW-nr8J1FoMSKZiPGeXgg.ynMOmnhhoXlfnjVGowyF3hM8Qa5zqgBh89mNAniozS0g.GIF/%EB%B0%A9_%EC%83%9D%EC%84%B1.gif?type=w3840" width="800">
-</p>
-</details>
-<br>
+  - 공간 생성 버튼을 클릭하면 무작위로 부여 된 방 번호와 상호 작용이 필요한 url 입력을 통해 공간을 생성할 수 있습니다.
 
-- 공간 생성 버튼을 클릭하면 무작위로 부여 된 방 번호와 상호 작용이 필요한 url 입력을 통해 공간을 생성할 수 있습니다.
+  1-2 사용자 초대 및 참여하기
 
-1-2 사용자 초대 및 참여하기
-
-<details>
-<summary>🔎 미리보기</summary>
-<p align="center">
-<img src="https://postfiles.pstatic.net/MjAyNDA4MDhfMTkg/MDAxNzIzMDU0OTU1NTM1.b2gZgIRVKvUr-SpgrewHV_pkbCRIN7Wg__4BN9uIeUAg.V1KJsYh2_tLzUPSbgmT36Bz3XuuNpvni3TFZSPUaR9Ug.GIF/%EC%B0%B8%EC%97%AC%ED%95%98%EA%B8%B0.gif?type=w3840" width="800">
-</p>
-</details>
-<br>
-
-- 공간에 접속 중인 사용자는 방 번호 복사 버튼을 이용하여 현재 접속 중인 방 번호를 복사할 수 있습니다.
-- 참여하기 버튼을 클릭하면 공간에 접속 중인 사용자에게 받은 방 번호를 통해 다른 사용자가 만든 공간에 참여할 수 있습니다.
+  - 공간에 접속 중인 사용자는 방 번호 복사 버튼을 이용하여 현재 접속 중인 방 번호를 복사할 수 있습니다.
+  - 참여하기 버튼을 클릭하면 공간에 접속 중인 사용자에게 받은 방 번호를 통해 다른 사용자가 만든 공간에 참여할 수 있습니다.
   <br><br>
 
 ### 2. 스크롤 이벤트 동기화
-
-<details>
-<summary>🔎 미리보기</summary>
-<p align="center">
-<img src="https://postfiles.pstatic.net/MjAyNDA4MDhfMjY1/MDAxNzIzMDU3MzU5NDk1.Ksf5F47C9Y3819eA0m9_LA52j-N03woN9DD51n2U6dYg.ng9-_v5iybKkHtYgyR-pM2kJpVWXY7Vy6rOd4rT4O3Ag.GIF/%EB%B0%B1%EB%B6%84%EC%9C%A8_%EC%8A%A4%ED%81%AC%EB%A1%A4.gif?type=w3840" width="800">
-</p>
-</details>
-<br>
 
 - 같은 공간에 접속한 사용자는 항상 같은 스크롤 위치의 화면을 볼 수 있습니다.
 - 사용자가 iframe 화면을 스크롤 하면 다른 사용자에게도 스크롤 이벤트가 적용됩니다.
@@ -119,27 +95,11 @@ Gong-Gan 프로젝트는 화면 공유에서 더 나아갈 수 없을까? 하는
 
 ### 3. 클릭 이벤트 동기화
 
-<details>
-<summary>🔎 미리보기</summary>
-<p align="center">
-<img src="https://postfiles.pstatic.net/MjAyNDA4MDhfMjcw/MDAxNzIzMDU3MzU5MzA2.B4JpMYBx1Ln7F2_e-sKqt6MnhCouAV6z84eFUaBJQgUg.W34wXFk5wLtIyX0qNdNl591CYa3b4DCmObnjBOdjO10g.GIF/%EC%83%81%EB%8C%80_%EC%A2%8C%ED%91%9C.gif?type=w3840" width="800">
-</p>
-</details>
-<br>
-
 - 같은 공간에 접속한 사용자는 항상 같은 화면을 볼 수 있습니다.
 - 사용자가 iframe 화면 안에 로드 된 웹 페이지에서 클릭을 하면 다른 사용자에게도 클릭 이벤트가 적용됩니다.
   <br><br>
 
 ### 4. 실시간 음성 채팅
-
-<details>
-<summary>🔎 미리보기</summary>
-<p align="center">
-<img src="" width="600">
-</p>
-</details>
-<br>
 
 - 같은 공간에 접속한 사용자와 실시간 대화가 가능합니다.
 - 사운드, 마이크 버튼 클릭을 통해 on/off가 가능합니다.
@@ -147,14 +107,6 @@ Gong-Gan 프로젝트는 화면 공유에서 더 나아갈 수 없을까? 하는
   <br><br>
 
 ### 5. 공유 캔버스
-
-<details>
-<summary>🔎 미리보기</summary>
-<p align="center">
-<img src="https://postfiles.pstatic.net/MjAyNDA4MDhfOTMg/MDAxNzIzMDU1NDU0OTE0.soN5qd70GpNIwxwmZsFzVBkxwFNf5Ze6JsVzOn--xm4g.49cRCuRsSBhXYz1ljXWPse3vx-f8ENk5iaBtKAl8U4og.GIF/%EA%B3%B5%EC%9C%A0%EC%BA%94%EB%B2%84%EC%8A%A4.gif?type=w3840" width="800">
-</p>
-</details>
-<br>
 
 - 같은 공간에 접속한 사용자와 공유 캔버스 이용이 가능합니다.
 - 펜 아이콘을 클릭하여 iframe 화면 위에 그림을 그리면 다른 사용자의 iframe 화면에도 같은 위치에 그림이 그려집니다.
@@ -204,7 +156,7 @@ XSS는 악의적인 스크립트가 웹페이지에 삽입되어 실행되는 �
 
 `rules.json`
 
-```
+``` js
 "responseHeaders": [
         {
           "header": "Content-Security-Policy",
@@ -255,7 +207,7 @@ XSS는 악의적인 스크립트가 웹페이지에 삽입되어 실행되는 �
 
 ### <픽셀로 적용한 스크롤 방식>
 
-```
+``` js
 const getScrollInfo = (iframe) => {
   const iframeDoc = iframe.contentDocument;
   const { scrollTop, scrollLeft } = iframeDoc.documentElement;
@@ -284,7 +236,7 @@ const getScrollInfo = (iframe) => {
 
 #### <백분율로 적용한 스크롤 방식>
 
-```
+``` js
 const getScrollInfo = (iframe) => {
   const iframeDoc = iframe.contentDocument;
   const { scrollTop, scrollLeft, scrollHeight, scrollWidth, clientHeight, clientWidth } =
@@ -318,7 +270,7 @@ const getScrollInfo = (iframe) => {
 
 #### <절대 좌표로 적용한 클릭 동기화 방식>
 
-```
+``` js
 function handleClick(event) {
   const clickData = {
     type: "clickEvent",
@@ -348,7 +300,7 @@ function handleClick(event) {
 
 #### <상대 좌표와 URL을 이용한 클릭 동기화 방식>
 
-```
+``` js
 function handleClick(event) {
   const iframe = iframeRef.current;
   const relativeX = event.clientX / iframe.clientWidth;
@@ -385,37 +337,6 @@ iframe의 크기 정보도 함께 전송하여, 수신 측에서 더 정확한 �
 
 이러한 방식을 통해 사용자들은 화면 크기나 해상도에 관계없이 동일한 요소를 클릭하고 있다는 느낌을 받을 수 있고, URL 동기화를 통해 모든 사용자가 항상 동일한 페이지를 보면서 협업할 수 있습니다.
 <br><br><br>
-
-# 🗓️ Schedule
-
-프로젝트 진행 기간<br>
-2024.07.08 ~ 2024.07.30
-
-1주차
-
-- 아이디어 구상
-- POC
-- 프로젝트 세팅
-  <br><br>
-
-2주차
-
-- 확장 프로그램 popup 구현
-- iframe에 웹 사이트 실행 구현
-- 방 만들기 구현
-- 참여하기 구현
-- iframe 로드시 웹 사이트 보안 문제 해결
-- iframe이 적용된 웹 사이트 정적화면 구현
-- 오류 토스트 팝업 구현
-  <br><br>
-
-3주차
-
-- 실시간 스크롤 동기화 구현
-- 실시간 클릭 동기화 구현
-- 실시간 음성 채팅 구현
-- 공유 캔버스 구현
-  <br><br><br>
 
 # 💭 Memoir
 
