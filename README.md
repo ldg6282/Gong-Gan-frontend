@@ -3,7 +3,7 @@
 Gong-Gan은 여러 명의 사용자가 협업할 수 있는 공간을 제공하는 크롬 익스텐션입니다!<br>
 실시간 클릭 이벤트, 스크롤 이벤트, 음성 채팅, 공유 캔버스를 이용해 로컬 브라우저에서 다른 사용자와 상호작용 할 수 있습니다.<br>
 Gong-Gan을 통해 여러 사용자와 원활하게 협업하고 소통하세요!
-<br><br><br>
+<br>
 
 # 🔨 Tech Stacks
 
@@ -50,10 +50,13 @@ Gong-Gan을 통해 여러 사용자와 원활하게 협업하고 소통하세요
   - [(5) 공유 캔버스](#5-공유-캔버스)
 - [🔥 Challenge](#-challenge)
   - [1. Web 🆚 Chrome Extention](#web--chrome-extention)
-  - [2. 스크롤 이벤트 동기화](#스크롤-이벤트-동기화)
+  - [2. WebSocket을 이용한 실시간 동기화](#websocket을-이용한-실시간-동기화)
+    - [roomId를 포함한 이벤트를 서버로 전송](#1-roomid를-포함한-이벤트를-서버로-전송)
+    - [전송받은 roomId와 동일한 공간에만 이벤트를 전송](#2-전송받은-roomid와-동일한-공간에만-이벤트를-전송)
+  - [3. 스크롤 이벤트 동기화](#스크롤-이벤트-동기화)
     - [2-1. 픽셀로 적용한 스크롤 적용하기](#1-픽셀의-양으로-스크롤-적용하기)
     - [2-2. 백분율로 적용한 스크롤 적용하기](#2-백분율을-기준으로-스크롤-적용하기)
-  - [3. 클릭 이벤트 동기화](#클릭-이벤트-동기화)
+  - [4. 클릭 이벤트 동기화](#클릭-이벤트-동기화)
     - [3-1. 절대 좌표로 적용한 클릭 적용하기](#1-절대-좌표를-이용한-클릭-적용하기)
     - [3-1. 상대 좌표와 UR을 이용한 클릭 적용하기](#2-상대-좌표와-url을-이용한-클릭-적용하기)
 - [🗓️ Schedule](#️-schedule)
@@ -71,23 +74,40 @@ Gong-Gan 프로젝트는 화면 공유에서 더 나아갈 수 없을까? 하는
    "스크롤 조금만 내려봐", "여기 클릭해 봐"와 같은 요청을 주고받는 과정에서 "어디? 여기?"와 같은 소통이 잘되지 않는 답답함을 자주 느꼈습니다. 직접 조작할 수 없는 상황에서는 효과적인 소통과 협업이 어려웠습니다.<br><br>
 
 위와 같은 이유로 "화면을 공유하지 않고도 다른 사람들과 어떻게 원활하게 협업할 수 있을까?"라는 고민을 하게 되었습니다. 이러한 고민 끝에, 로컬 브라우저에서 다른 사용자와 실시간으로 상호작용을 하고 다양한 기능을 제공하는 프로젝트를 시작하게 되었습니다.<br>
-<br><br>
+
+<br><br><br>
 
 # ✨ Features
 
 ### 1. 브라우저 액션 팝업
 
-  1-1 공간 생성
+1-1 공간 생성
 
-  - 공간 생성 버튼을 클릭하면 무작위로 부여 된 방 번호와 상호 작용이 필요한 url 입력을 통해 공간을 생성할 수 있습니다.
+<p align="center">
+<img src="https://postfiles.pstatic.net/MjAyNDA4MDhfMTA0/MDAxNzIzMDU1NDU0ODgx.4xQDUKA4kwYG81sBdq5LvC_sW-nr8J1FoMSKZiPGeXgg.ynMOmnhhoXlfnjVGowyF3hM8Qa5zqgBh89mNAniozS0g.GIF/%EB%B0%A9_%EC%83%9D%EC%84%B1.gif?type=w3840" width="600">
+</p>
+<br>
 
-  1-2 사용자 초대 및 참여하기
+- 공간 생성 버튼을 클릭하면 무작위로 부여 된 방 번호와 상호 작용이 필요한 url 입력을 통해 공간을 생성할 수 있습니다.
+  <br><br>
 
-  - 공간에 접속 중인 사용자는 방 번호 복사 버튼을 이용하여 현재 접속 중인 방 번호를 복사할 수 있습니다.
-  - 참여하기 버튼을 클릭하면 공간에 접속 중인 사용자에게 받은 방 번호를 통해 다른 사용자가 만든 공간에 참여할 수 있습니다.
+1-2 사용자 초대 및 참여하기
+
+<p align="center">
+<img src="https://postfiles.pstatic.net/MjAyNDA4MDhfMTkg/MDAxNzIzMDU0OTU1NTM1.b2gZgIRVKvUr-SpgrewHV_pkbCRIN7Wg__4BN9uIeUAg.V1KJsYh2_tLzUPSbgmT36Bz3XuuNpvni3TFZSPUaR9Ug.GIF/%EC%B0%B8%EC%97%AC%ED%95%98%EA%B8%B0.gif?type=w3840" width="600">
+</p>
+<br>
+
+- 공간에 접속 중인 사용자는 방 번호 복사 버튼을 이용하여 현재 접속 중인 방 번호를 복사할 수 있습니다.
+- 참여하기 버튼을 클릭하면 공간에 접속 중인 사용자에게 받은 방 번호를 통해 다른 사용자가 만든 공간에 참여할 수 있습니다.
   <br><br>
 
 ### 2. 스크롤 이벤트 동기화
+
+<p align="center">
+<img src="https://postfiles.pstatic.net/MjAyNDA4MDhfMjY1/MDAxNzIzMDU3MzU5NDk1.Ksf5F47C9Y3819eA0m9_LA52j-N03woN9DD51n2U6dYg.ng9-_v5iybKkHtYgyR-pM2kJpVWXY7Vy6rOd4rT4O3Ag.GIF/%EB%B0%B1%EB%B6%84%EC%9C%A8_%EC%8A%A4%ED%81%AC%EB%A1%A4.gif?type=w3840" width="600">
+</p>
+<br>
 
 - 같은 공간에 접속한 사용자는 항상 같은 스크롤 위치의 화면을 볼 수 있습니다.
 - 사용자가 iframe 화면을 스크롤 하면 다른 사용자에게도 스크롤 이벤트가 적용됩니다.
@@ -95,11 +115,23 @@ Gong-Gan 프로젝트는 화면 공유에서 더 나아갈 수 없을까? 하는
 
 ### 3. 클릭 이벤트 동기화
 
+<p align="center">
+<img src="https://postfiles.pstatic.net/MjAyNDA4MDhfMjcw/MDAxNzIzMDU3MzU5MzA2.B4JpMYBx1Ln7F2_e-sKqt6MnhCouAV6z84eFUaBJQgUg.W34wXFk5wLtIyX0qNdNl591CYa3b4DCmObnjBOdjO10g.GIF/%EC%83%81%EB%8C%80_%EC%A2%8C%ED%91%9C.gif?type=w3840" width="600">
+</p>
+<br>
+
 - 같은 공간에 접속한 사용자는 항상 같은 화면을 볼 수 있습니다.
 - 사용자가 iframe 화면 안에 로드 된 웹 페이지에서 클릭을 하면 다른 사용자에게도 클릭 이벤트가 적용됩니다.
   <br><br>
 
 ### 4. 실시간 음성 채팅
+
+<p align="center">
+<a href="https://www.youtube.com/watch?v=jNk2qFmdRTE">
+  <img src="https://postfiles.pstatic.net/MjAyNDA4MjJfMjIy/MDAxNzI0MzMxODY2NTA1.1FOwKTmwhCqWNSOwrZZPy9kJ0N2ctB_Ft6ftrAVDre0g.dZl9NN2i6XZ6XjjM2WLmquLIaZOuHDdCv3b0S8hGjx0g.PNG/image.png?type=w773" alt="음성채팅 녹화 영상입니다." width="600">
+</a><br>
+  이미지를 클릭하면 음성 채팅 유튜브 링크로 이동합니다.
+</p>
 
 - 같은 공간에 접속한 사용자와 실시간 대화가 가능합니다.
 - 사운드, 마이크 버튼 클릭을 통해 on/off가 가능합니다.
@@ -108,18 +140,21 @@ Gong-Gan 프로젝트는 화면 공유에서 더 나아갈 수 없을까? 하는
 
 ### 5. 공유 캔버스
 
+<p align="center">
+<img src="https://postfiles.pstatic.net/MjAyNDA4MDhfOTMg/MDAxNzIzMDU1NDU0OTE0.soN5qd70GpNIwxwmZsFzVBkxwFNf5Ze6JsVzOn--xm4g.49cRCuRsSBhXYz1ljXWPse3vx-f8ENk5iaBtKAl8U4og.GIF/%EA%B3%B5%EC%9C%A0%EC%BA%94%EB%B2%84%EC%8A%A4.gif?type=w3840" width="600">
+</p>
+<br>
+
 - 같은 공간에 접속한 사용자와 공유 캔버스 이용이 가능합니다.
 - 펜 아이콘을 클릭하여 iframe 화면 위에 그림을 그리면 다른 사용자의 iframe 화면에도 같은 위치에 그림이 그려집니다.
 - 색상 선택 버튼을 통해 펜의 색상을 선택하여 그림을 그릴 수 있습니다.
   <br><br><br>
-  
+
 # 🔥 Challenge
 
 ## **Web 🆚 Chrome Extention**
 
-웹사이트에서 특정 페이지를 iframe으로 로드하려고 할 때, 아래와 같은 오류가 발생했습니다.<br>
-<br>
-<img src="https://postfiles.pstatic.net/MjAyNDA4MDZfMjk2/MDAxNzIyOTMyODcwMzQ5.HDsg1M4kWwSOwZ7l5IR3gDsiuPyzV_H4ZyqtRC8H5sMg.FpTVbhyiNrqLu633W02Nhr-zlBvVEiNZjbxxVNV3F_4g.PNG/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7_2024-07-11_155207.png?type=w773" width="600"><br>
+<img src="https://postfiles.pstatic.net/MjAyNDA4MjJfMTYw/MDAxNzI0MzI0NzY3MTcw.hN-jAVC3cM-UqEhCdbzAoser8BpUYxkLQqBSphbSJ_4g.CeCvLNU1a0065V3U0aiMJ5O2OCHZhxMD8bF2BcnCVYQg.PNG/image.png?type=w773" width="600"><br>
 <br>
 이는 `X-Frame-Options Header`와 `Content-Security-Policy` 설정으로 인해 발생한 것으로, 해당 설정을 가진 페이지는 iframe 내에서 로드가 불가능합니다.<br>
 예를 들어, 네이버(Naver), 구글(Google), 노션(Notion) 등의 페이지는 이러한 이유로 iframe에서 열리지 않았습니다.<br>
@@ -156,7 +191,7 @@ XSS는 악의적인 스크립트가 웹페이지에 삽입되어 실행되는 �
 
 `rules.json`
 
-``` js
+```js
 "responseHeaders": [
         {
           "header": "Content-Security-Policy",
@@ -196,6 +231,63 @@ XSS는 악의적인 스크립트가 웹페이지에 삽입되어 실행되는 �
 이 과정을 통해 브라우저는 수정된 헤더를 기반으로 페이지를 렌더링하게 되어, 원래는 iframe 안에 로드되지 않을 웹 페이지가 로드됩니다.
 <br><br><br>
 
+## WebSocket을 이용한 실시간 동기화
+
+같은 공간에 접속한 사용자들만 통신이 가능하게 해야했습니다. 그러기 위해서는 각 방에 랜덤으로 Id를 부여하고 Id가 같은 방에 접속한 사용자들에게만 이벤트를 전송하여, 동시에 여러방이 생성되는 상황에도 이벤트를 정확하게 전송해야 했습니다.
+
+```js
+const randomRoomId = Math.random().toString(36).slice(2, 11);
+```
+
+`Math.random`메서드를 통해 영문, 숫자가 결합된 랜덤한 roomId를 생성하여 roomId를 서버에 저장합니다.
+
+### 1. roomId를 포함한 이벤트를 서버로 전송
+
+<p align="center">
+<img src="https://postfiles.pstatic.net/MjAyNDA4MjJfOTQg/MDAxNzI0MzIyODA3MjE4.rxi0UO-trhWglrdxdUYYcKrUut4jrLaOEtUKKluSXXMg.firu2RRx4nM96GWzqOODBqGlFf5OAoNwUOhNMNPepqMg.PNG/image.png?type=w773" width="600">
+</p>
+
+```js
+const scrollData = {
+  type: "scrollUpdate",
+  roomId,
+  userId,
+  ...currentInfo,
+};
+
+if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+  socketRef.current.send(JSON.stringify(scrollData));
+}
+```
+
+- 이벤트를 전송하는 공간 접속자가 roomId를 포함한 이벤트를 서버로 전송합니다.
+  <br><br>
+
+### 2. 전송받은 roomId와 동일한 공간에만 이벤트를 전송
+
+<p align="center">
+<img src="https://postfiles.pstatic.net/MjAyNDA4MjJfMTYx/MDAxNzI0MzE1MTIwNDM4.KOuqaJTKeKZNNnGF7zJjx5_0lEkslbxYlE7BbFcN-UQg.FISB1x4adf_oi5a6Qt6OLvUODj46kBOJZ3V0GZZf6vog.PNG/image.png?type=w773" width="600">
+</p>
+
+```js
+case "scrollUpdate": {
+  const clientInfo = clients.get(ws);
+  if (clientInfo) {
+    const room = rooms.get(clientInfo.roomId);
+    if (room) {
+      // roomId에 해당하는 방의 클라이언트들에게 이벤트 전송
+    }
+  }
+  break;
+}
+```
+
+- 서버는 이벤트를 발생시킨 클라이언트가 보낸 이벤트 데이터와 roomId를 전송받습니다.
+- roomId를 판별하고 같은 roomId를 가진 공간에 접속한 사용자에게 이벤트를 전송합니다.
+
+위와 같은 과정을 통해 같은 roomId를 가진 공간의 사용자들만 이벤트의 전달이 가능했고, 같은 공간에 접속한 사용자들만이 이벤트를 주고받아 정확한 이벤트 전달이 가능했습니다.
+<br><br><br>
+
 ## 스크롤 이벤트 동기화
 
 실시간 스크롤 이벤트 동기화를 적용할 때 가장 중요하게 생각한 점은 같은 공간에 접속한 사용자가 마치 "같은 화면을 보고 있다"고 느끼게 하는 것이었습니다.
@@ -207,14 +299,14 @@ XSS는 악의적인 스크립트가 웹페이지에 삽입되어 실행되는 �
 
 ### <픽셀로 적용한 스크롤 방식>
 
-``` js
+```js
 const getScrollInfo = (iframe) => {
   const iframeDoc = iframe.contentDocument;
   const { scrollTop, scrollLeft } = iframeDoc.documentElement;
 
   return {
-    top: scrollTop,  // 픽셀 단위의 세로 스크롤 위치
-    left: scrollLeft // 픽셀 단위의 가로 스크롤 위치
+    top: scrollTop, // 픽셀 단위의 세로 스크롤 위치
+    left: scrollLeft, // 픽셀 단위의 가로 스크롤 위치
   };
 };
 ```
@@ -236,17 +328,15 @@ const getScrollInfo = (iframe) => {
 
 #### <백분율로 적용한 스크롤 방식>
 
-``` js
+```js
 const getScrollInfo = (iframe) => {
   const iframeDoc = iframe.contentDocument;
   const { scrollTop, scrollLeft, scrollHeight, scrollWidth, clientHeight, clientWidth } =
     iframeDoc.documentElement;
 
   return {
-    verticalRatio: scrollHeight > clientHeight ?
-      scrollTop / (scrollHeight - clientHeight) : 0,
-    horizontalRatio: scrollWidth > clientWidth ?
-      scrollLeft / (scrollWidth - clientWidth) : 0
+    verticalRatio: scrollHeight > clientHeight ? scrollTop / (scrollHeight - clientHeight) : 0,
+    horizontalRatio: scrollWidth > clientWidth ? scrollLeft / (scrollWidth - clientWidth) : 0,
   };
 };
 ```
@@ -270,14 +360,14 @@ const getScrollInfo = (iframe) => {
 
 #### <절대 좌표로 적용한 클릭 동기화 방식>
 
-``` js
+```js
 function handleClick(event) {
   const clickData = {
     type: "clickEvent",
     roomId,
     userId,
     x: event.clientX,
-    y: event.clientY
+    y: event.clientY,
   };
   socketRef.current.send(JSON.stringify(clickData));
 }
@@ -300,7 +390,7 @@ function handleClick(event) {
 
 #### <상대 좌표와 URL을 이용한 클릭 동기화 방식>
 
-``` js
+```js
 function handleClick(event) {
   const iframe = iframeRef.current;
   const relativeX = event.clientX / iframe.clientWidth;
@@ -314,7 +404,7 @@ function handleClick(event) {
     relativeY,
     iframeWidth: iframe.clientWidth,
     iframeHeight: iframe.clientHeight,
-    url: iframe.contentWindow.location.href
+    url: iframe.contentWindow.location.href,
   };
   socketRef.current.send(JSON.stringify(clickData));
 }
@@ -337,6 +427,37 @@ iframe의 크기 정보도 함께 전송하여, 수신 측에서 더 정확한 �
 
 이러한 방식을 통해 사용자들은 화면 크기나 해상도에 관계없이 동일한 요소를 클릭하고 있다는 느낌을 받을 수 있고, URL 동기화를 통해 모든 사용자가 항상 동일한 페이지를 보면서 협업할 수 있습니다.
 <br><br><br>
+
+# 🗓️ Schedule
+
+프로젝트 진행 기간<br>
+2024.07.08 ~ 2024.07.30
+
+1주차
+
+- 아이디어 구상
+- POC
+- 프로젝트 세팅
+  <br><br>
+
+2주차
+
+- 확장 프로그램 popup 구현
+- iframe에 웹 사이트 실행 구현
+- 방 만들기 구현
+- 참여하기 구현
+- iframe 로드시 웹 사이트 보안 문제 해결
+- iframe이 적용된 웹 사이트 정적화면 구현
+- 오류 토스트 팝업 구현
+  <br><br>
+
+3주차
+
+- 실시간 스크롤 동기화 구현
+- 실시간 클릭 동기화 구현
+- 실시간 음성 채팅 구현
+- 공유 캔버스 구현
+  <br><br><br>
 
 # 💭 Memoir
 
