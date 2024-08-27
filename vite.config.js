@@ -21,4 +21,21 @@ export default defineConfig({
       },
     },
   },
+  test: {
+    coverage: {
+      reporter: ["text", "json", "html"],
+      include: ["src/**/*.{js,jsx}"],
+      exclude: [
+        "node_modules/**",
+        "**/*.spec.{js,jsx}",
+        "**/*.test.{js,jsx}",
+        "src/main.jsx",
+        "src/popup.jsx",
+        "src/atoms/atoms.js",
+      ],
+    },
+    environment: "jsdom",
+    globals: true,
+    setupFiles: [resolve(__dirname, "./src/setupTests.js")],
+  },
 });
