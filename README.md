@@ -51,16 +51,23 @@ Gong-Gan을 통해 여러 사용자와 원활하게 협업하고 소통하세요
 - [🔥 Challenge](#-challenge)
   - [1. Web 🆚 Chrome Extention](#web--chrome-extention)
   - [2. WebSocket을 이용한 실시간 동기화](#websocket을-이용한-실시간-동기화)
-    - [roomId를 포함한 이벤트를 서버로 전송](#1-roomid를-포함한-이벤트를-서버로-전송)
-    - [전송받은 roomId와 동일한 공간에만 이벤트를 전송](#2-전송받은-roomid와-동일한-공간에만-이벤트를-전송)
+    - [roomId를 포함한 이벤트를 서버로 전송](#1-roomId를-포함한-이벤트를-서버로-전송)
+    - [전송받은 roomId와 동일한 공간에만 이벤트를 전송](#2-전송받은-roomId와-동일한-공간에만-이벤트를-전송)
   - [3. 스크롤 이벤트 동기화](#스크롤-이벤트-동기화)
     - [2-1. 픽셀로 적용한 스크롤 적용하기](#1-픽셀의-양으로-스크롤-적용하기)
     - [2-2. 백분율로 적용한 스크롤 적용하기](#2-백분율을-기준으로-스크롤-적용하기)
   - [4. 클릭 이벤트 동기화](#클릭-이벤트-동기화)
     - [3-1. 절대 좌표로 적용한 클릭 적용하기](#1-절대-좌표를-이용한-클릭-적용하기)
     - [3-1. 상대 좌표와 UR을 이용한 클릭 적용하기](#2-상대-좌표와-url을-이용한-클릭-적용하기)
-- [🗓️ Schedule](#️-schedule)
+  - [5. 실시간 음성 채팅](#실시간-음성-채팅)
+    - [5-1. WebRTC를 이용한 음성 채팅](#1-webrtc를-이용한-음성-채팅)
+    - [5-2. Web Audio API를 통한 음성 제어](#2-web-audio-api를-통한-음성-제어)
+  - [6. 공유 캔버스](#공유-캔버스)
+    - [6-1. Canvas API를 활용한 실시간 드로잉](#1-canvas-api를-활용한-실시간-드로잉)
+    - [6-2. requestAnimationFrame을 활용한 페이드 아웃 애니메이션 구현](#2-requestanimationframe을-활용한-페이드-아웃-애니메이션-구현)
+    - [6-3. 상대 좌표 시스템을 이용한 드로잉 적용](#3-상대-좌표-시스템을-이용한-드로잉-적용)
 - [💭 Memoir](#-memoir)
+- [🗓️ Schedule](#️-schedule)
   <br><br><br>
 
 # 🧲 Motivation
@@ -154,7 +161,7 @@ Gong-Gan 프로젝트는 화면 공유에서 더 나아갈 수 없을까? 하는
 
 ## **Web 🆚 Chrome Extention**
 
-<img src="https://postfiles.pstatic.net/MjAyNDA4MjJfMTYw/MDAxNzI0MzI0NzY3MTcw.hN-jAVC3cM-UqEhCdbzAoser8BpUYxkLQqBSphbSJ_4g.CeCvLNU1a0065V3U0aiMJ5O2OCHZhxMD8bF2BcnCVYQg.PNG/image.png?type=w773" width="600"><br>
+<img src="https://postfiles.pstatic.net/MjAyNDA4MjdfMTM4/MDAxNzI0NzQ0NzU1OTI1.Nifg9McT7uw8WQKgjhp_mynjF6vvF-_v-okz0-IXMFcg.xkutqqZ48C28Y2kk3cTfNXxnWuennfyuQnyuiXRyKPEg.PNG/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7_2024-08-27_164526.png?type=w773" width="600"><br>
 <br>
 이는 `X-Frame-Options Header`와 `Content-Security-Policy` 설정으로 인해 발생한 것으로, 해당 설정을 가진 페이지는 iframe 내에서 로드가 불가능합니다.<br>
 예를 들어, 네이버(Naver), 구글(Google), 노션(Notion) 등의 페이지는 이러한 이유로 iframe에서 열리지 않았습니다.<br>
@@ -235,13 +242,39 @@ XSS는 악의적인 스크립트가 웹페이지에 삽입되어 실행되는 �
 
 같은 공간에 접속한 사용자들만 통신이 가능하게 해야했습니다. 그러기 위해서는 각 방에 랜덤으로 Id를 부여하고 Id가 같은 방에 접속한 사용자들에게만 이벤트를 전송하여, 동시에 여러방이 생성되는 상황에도 이벤트를 정확하게 전송해야 했습니다.
 
+### 1. 중복 가능성이 없는 roomId 생성
+
+#### 1-1. 클라이언트에서 생성하는 랜덤한 Id
+
 ```js
-const randomRoomId = Math.random().toString(36).slice(2, 11);
+const randomroomId = Math.random().toString(36).slice(2, 11);
 ```
 
-`Math.random`메서드를 통해 영문, 숫자가 결합된 랜덤한 roomId를 생성하여 roomId를 서버에 저장합니다.
+<p align="center">
+<img src="https://postfiles.pstatic.net/MjAyNDA4MjdfNzQg/MDAxNzI0NzQ0NzU1OTMx.oiu53l6HXDryVi52uGqBBdoEGtS-XNbr1VuLPYMFKLgg.f6nlHpLXQe_Jz8gYLY12kRPqg13EpVKP5X-dMekzhi8g.PNG/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7_2024-08-27_164421.png?type=w773" width="600">
+</p>
 
-### 1. roomId를 포함한 이벤트를 서버로 전송
+처음 시도했던 방식은 `Math.random`메서드를 통해 영문, 숫자가 결합된 랜덤한 roomId를 생성하여 서버에 저장하는 방식으로 구현했습니다.<br>
+9자리의 랜덤한 roomId를 생성한다고는 했지만 방 번호가 겹칠 가능성이 없는 것은 아니었습니다.<br>
+이미 생성된 roomId에 대한 유효성 검사를 진행하고, 오류 토스트 메시지 팝업이 표시되지만 사용성이 떨어질 우려가 있다고 판단하였습니다.
+<br>
+
+#### 1-2. 서버에서 생성하는 랜덤한 Id
+
+서버에서 roomId를 생성하는 방식을 선택하여 구현했습니다.<br>
+클라이언트에서 생성하는 Id와는 다르게 서버에서 존재하지 않는 Id를 전달받아 사용하기 때문에 중복 Id 생성이 되지 않습니다.
+
+<p align="center">
+<img src="https://postfiles.pstatic.net/MjAyNDA4MjdfMTM3/MDAxNzI0NzQ0NzU1OTk0.DDKBnsHzSW6XX583TkJd7LHaIHeZyyrcbz9IrGN-3dwg.YhxmpwF8d3GsFfhoec7PrTgYabytLeAgXWRJAaRnR-Mg.PNG/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7_2024-08-27_164142.png?type=w773" width="600">
+</p>
+<p align="center">
+<img src="https://postfiles.pstatic.net/MjAyNDA4MjdfMjIy/MDAxNzI0NzQ1NjY1ODU3.zoUjITbKV_bMzB_0G4nE8O3C7-WSU3VpU22hPHfuiWQg.fAp6J1et98IKMhWOik7scJFB-_Ew48vPNX6hnOvtKqcg.PNG/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7_2024-08-27_170043.png?type=w773" width="600">
+</p>
+
+위 이미지와 같이 공간 생성 버튼을 클릭했을 때 보이는 랜덤한 roomId는 서버에서 유효성 검사를 진행한 후 생성된 roomId이기 때문에 이용자의 사용성이 떨어질 우려를 하지 않을 수 있었습니다.
+<br><br>
+
+### 2. roomId를 포함한 이벤트를 서버로 전송
 
 <p align="center">
 <img src="https://postfiles.pstatic.net/MjAyNDA4MjJfOTQg/MDAxNzI0MzIyODA3MjE4.rxi0UO-trhWglrdxdUYYcKrUut4jrLaOEtUKKluSXXMg.firu2RRx4nM96GWzqOODBqGlFf5OAoNwUOhNMNPepqMg.PNG/image.png?type=w773" width="600">
@@ -263,7 +296,7 @@ if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
 - 이벤트를 전송하는 공간 접속자가 roomId를 포함한 이벤트를 서버로 전송합니다.
   <br><br>
 
-### 2. 전송받은 roomId와 동일한 공간에만 이벤트를 전송
+### 3. 전송받은 roomId와 동일한 공간에만 이벤트를 전송
 
 <p align="center">
 <img src="https://postfiles.pstatic.net/MjAyNDA4MjJfMTYx/MDAxNzI0MzE1MTIwNDM4.KOuqaJTKeKZNNnGF7zJjx5_0lEkslbxYlE7BbFcN-UQg.FISB1x4adf_oi5a6Qt6OLvUODj46kBOJZ3V0GZZf6vog.PNG/image.png?type=w773" width="600">
@@ -428,6 +461,270 @@ iframe의 크기 정보도 함께 전송하여, 수신 측에서 더 정확한 �
 이러한 방식을 통해 사용자들은 화면 크기나 해상도에 관계없이 동일한 요소를 클릭하고 있다는 느낌을 받을 수 있고, URL 동기화를 통해 모든 사용자가 항상 동일한 페이지를 보면서 협업할 수 있습니다.
 <br><br><br>
 
+## 실시간 음성 채팅
+
+함께 있지 않은 사용자와 소통을 위해 개발을 시작한 프로젝트인 만큼 음성 채팅은 가장 중요한 부분 중 하나라고 생각했습니다.<br>
+이를 위해 WebRTC 음성 채팅을 구현하고 Web Audio API를 활용하여 볼륨 조절을 구현했습니다.
+
+### 1. WebRTC를 이용한 음성 채팅
+
+WebRTC(Web Real-Time Communication)는 웹 브라우저 간 플러그인 없이 직접 통신할 수 있게 해주는 기술입니다.
+
+- 낮은 지연 시간: 서버를 거치지 않고 사용자 간 직접 연결되어 대화가 실시간으로 이루어집니다.
+- 높은 음질: P2P 연결을 통해 고품질의 오디오를 전송할 수 있습니다.
+  <br>
+
+<details>
+<summary>🤔P2P란❓</summary>
+P2P는 "Peer-to-Peer"의 약자로, 사용자가 서로 직접 연결되어 데이터를 주고받는 방식을 의미합니다.<br>
+서버의 개입 없이 각 사용자가 독립적으로 서로 데이터를 주고받습니다.
+</details>
+<details>
+<summary>🤔RTCPeerConnection이란❓</summary>
+RTCPeerConnection은 WebRTC에서 피어 간에 오디오, 비디오, 데이터 등을 주고받기 위해 사용하는 핵심입니다.<br>
+P2P 연결을 설정하고 관리하며, 데이터를 주고받는 역할을 합니다.
+</details><br>
+
+RTCPeerConnection이라는 객체를 만들어 사용자들 사이의 연결을 설정합니다. 이 과정은 같은 공간에 있는 사용자의 전화 선을 연결하는 것과 같습니다.
+
+```js
+const peerConnection = new RTCPeerConnection({
+  iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+});
+
+localStream.getTracks().forEach((track) => peerConnection.addTrack(track, localStream));
+```
+
+<p align="center">
+<img src="https://postfiles.pstatic.net/MjAyNDA4MjdfMTE2/MDAxNzI0NzYzMTI1ODM0.HBCbieM4Y-jOKAYrWBfURa12WQzfpZjbSC2aMDtXqH8g.9x2rkUGEZgkpxY5nfRA9j4MqM89jv5GnfoTlfTAN0vgg.PNG/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7_2024-08-27_203803.png?type=w773" width="600">
+</p>
+연결 과정은 아래와 같이 진행됩니다
+
+- Offer/Answer 교환: 연결을 시작하는 쪽에서 Offer(보내는 쪽)를 생성하고, 상대방이 이를 받아 Answer(받는 쪽)를 생성합니다.
+- 연결 설정: 교환된 정보를 바탕으로 P2P 연결을 설정합니다.
+
+연결이 완료되면 사용자 간에 직접 음성 데이터를 전송하는 것이 가능하고, 이를 통해서 실시간으로 대화가 가능합니다.
+<br><br>
+
+### 2. Web Audio API를 통한 음성 제어
+
+실시간 음성 채팅이 가능하도록 하는 것은 성공했지만, 이용자가 원하는 마이크와 사운드의 볼륨이 다를 수 있기 때문에 볼륨의 조절이 가능해야 했습니다.<br>
+오디오 볼륨을 조절할 수 있는 노드인 `GainNode`를 사용하여 구현했습니다.
+
+<details>
+<summary>🤔Web Audio API란❓</summary>
+브라우저에서 오디오를 생성, 처리, 제어할 수 있도록 해주는 도구입니다.<br>
+오디오 노드로 구성된 그래프를 만들어 데이터를 조작하거나, 볼륨 조절 작업을 처리할 수 있습니다.
+</details>
+<details>
+<summary>🤔GainNode란❓</summary>
+오디오의 볼륨을 조절하는 노드입니다. `GainNode`는 소리 신호의 크기를 조절하는데 사용됩니다.<br>
+예를 들어, 마이크 입력 음량이나 재생되는 음량을 제어할 때 사용합니다.
+</details>
+<br>
+
+#### 1. 입력된 소리를 GainNode에 연결
+
+```js
+source.connect(gainNodeRef.current);
+gainNodeRef.current.connect(destination);
+```
+
+- 마이크에서 입력된 소리를 `GainNode`에 연결합니다.
+
+#### 2. GainNode를 사용하여 볼륨 조절
+
+```js
+function setMicGain(micVolumeValue) {
+  if (gainNodeRef.current) {
+    const gain = (micVolumeValue / 100) ** 3;
+    gainNodeRef.current.gain.setValueAtTime(gain, audioContextRef.current.currentTime);
+  }
+}
+```
+
+<div align="center">
+<img src="https://postfiles.pstatic.net/MjAyNDA4MjdfMSAg/MDAxNzI0NzYyNDYyNDk4.lwRnbQTxpa6YS81kL8ufsA9AEq-1EFtj7z8SKKouOWsg.kSS-ZEBN0ox7iahNU9vXMOY9f9HpUc8QqeyJdDGDblIg.PNG/image.png?type=w773" width="218">
+<img src="https://postfiles.pstatic.net/MjAyNDA4MjdfMTAg/MDAxNzI0NzYzODU3MjE2.EaVDWNHqW8xZ7qMW6xIQzj7g38Ph52ItxNNrx_0C2Hcg.seaaVb0rYUGmnIAjrut0bKUsaRjO-IYxkAFqDr4DWB8g.PNG/image.png?type=w773" width="200">
+</div>
+
+- 사운드 바를 통해 마이크나, 사운드의 볼륨을 조절하면 `setMicGain` 함수 내에서 사운드 바의 조정에 따라 볼륨이 조절됩니다.
+
+#### 3. 볼륨 조절을 거친 후 사용자에게 전달
+
+```js
+const destination = audioContextRef.current.createMediaStreamDestination();
+gainNodeRef.current.connect(destination);
+```
+
+- 마이크의 입력 소리가 다른 사용자에게 전달되기 전에 볼륨 조절을 거치게 됩니다.
+
+이 과정을 통해 조정된 마이크 입력이나 사운드 출력이 WebRTC를 통해 사용자에게 전달됩니다.
+<br><br><br>
+
+## 공유 캔버스
+
+음성 채팅과 더불어서 소통할 때 꼭 필요하다고 생각한 것이 함께 그림을 그리고 공유할 수 있는 캔버스 기능이었습니다.<br>
+펜 기능을 통해 표시하고 싶은 부분에 선을 긋거나 글씨를 쓰는 등 여러가지 방법으로 소통할 수 있기 때문에 빼놓을 수 없는 기능이라고 생각했습니다.
+
+### 1. Canvas API를 활용한 실시간 드로잉
+
+Canvas API는 HTML5에서 제공하는 캔버스 기능입니다.<br>
+`canvas`요소를 사용해 그림을 그릴 수 있는 캔버스를 생성할 수 있습니다.
+
+<p align="center">
+<img src="https://postfiles.pstatic.net/MjAyNDA4MzBfMjQx/MDAxNzI1MDE5ODE4MTA0._U4AWBNpcW-38Cpm06nJP6Ed6fQ5mfu46GHR5YIpqZEg.vRagSpoAfe9624W6RzdmxiWfjy9vdogNLv6J3Jykvicg.PNG/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7_2024-08-30_210154.png?type=w773" width="400">
+<p align="center">비활성화 상태인 펜 아이콘을 클릭하여 캔버스 기능을 활성화 시킵니다.</p>
+</p>
+<br>
+<p align="center">
+<img src="https://postfiles.pstatic.net/MjAyNDA4MzBfMjE3/MDAxNzI1MDIwMDI3ODQ0.svpDFUw84blxQDayu23Q7NkWSByhYorqF03VxemJAIYg.T1g2TS9VVhWac2FFGB6oNquq4iTk8zvH2uMFDk0-2Bog.PNG/image.png?type=w773" width="600">
+</p>
+<p align="center">캔버스 기능이 활성화 되면 iframe 전체 화면을 차지하는 보이지 않는 캔버스가 생기게 됩니다.</p>
+<br>
+
+<p align="center">
+<img src="https://postfiles.pstatic.net/MjAyNDA4MzBfMjQ3/MDAxNzI1MDE5ODE4MTA3.1BFtnG8UJY86SYGRED4WtQoW5uxUJ1sxTan_kmVjjgAg.-J5ovXLhwENwbQRZYAJGuMadTZrgMh-MEdJAFQN44Awg.PNG/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7_2024-08-30_210708.png?type=w773" width="400">
+</p>
+<p align="center">펜 색상 선택 기능을 통해 원하는 색 선택이 가능합니다.</p>
+<br>
+<p align="center">
+<img src="https://postfiles.pstatic.net/MjAyNDA4MzBfNTkg/MDAxNzI1MDIwNjM1NTIz.L1TNiS3P7AJ-gjPzpk6pqMRPYXxnDbTNmC9pvzn8GsIg.bu3sGtjNwsw9R7PSToyWVc-4wXi48yQXpfHInJGZNLcg.GIF/%ED%99%94%EB%A9%B4_%EB%85%B9%ED%99%94_%EC%A4%91_2024-08-30_211850.gif?type=w3840" width="600">
+</p>
+<p align="center">캔버스가 활성화 된 상태라면 iframe 위에 자유롭게 그림을 그리는 것이 가능합니다.</p>
+
+#### 캔버스를 관리하기 위해 선 하나를 최소 단위로 정하고 관리합니다.
+
+```js
+{
+  id: string,
+  points: [{x: number, y: number}],
+  color: string,
+  opacity: number
+}
+```
+
+1. `mousedown` 이벤트로 그리기 시작을 감지합니다.
+2. `mousemove` 이벤트로 선의 경로를 추적합니다.
+3. `mouseup` 또는 `mouseleave` 이벤트로 그리기 종료를 감지합니다.
+
+위 과정을 통해 선 하나가 완성되면 고유 ID, 점 배열, 색상, 불투명도 정보를 가진 채로 line Ref 배열에 저장하는 방식으로 선 하나하나를 따로 관리하고 저장합니다.
+<br><br>
+
+### 2. requestAnimationFrame을 활용한 페이드 아웃 애니메이션 구현
+
+그려진 선이 자동으로 사라지지 않으면 사용자가 매번 수동으로 지워야 하는 번거로움이 있다고 생각했습니다.<br>
+특히 음성 채팅 기능을 지원하는 Gong-Gan의 특성상, 그려진 선이 계속 화면에 남아있을 필요성이 크지 않다고 판단했고, 이에 따라 선이 자동으로 사라지는 기능을 구현했습니다.
+
+선이 갑자기 사라지는 대신 부드럽게 페이드 아웃되는 애니메이션을 적용함으로써 다음과 같은 이점을 얻을 수 있었습니다:
+
+#### 1. **향상된 사용자 경험**<br>
+
+- 선이 서서히 사라짐으로써 사용자에게 더 자연스럽고 부드러운 시각적 경험을 제공합니다. 이는 갑작스러운 변화로 인한 시각적 불편함을 줄여줍니다.
+
+#### 2. **정보의 연속성 유지**<br>
+
+- 페이드 아웃 과정 동안 사용자는 이전에 그려진 내용을 잠시 더 볼 수 있어, 대화의 맥락을 유지하는 데 도움이 됩니다.
+
+#### 3. **시스템 동작에 대한 명확한 피드백**<br>
+
+- 사용자는 그려진 선이 의도적으로 제거되고 있음을 명확히 인지할 수 있습니다. 이는 시스템의 동작을 더 잘 이해하고 예측할 수 있게 해줍니다.
+
+```js
+const startFadeOut = useCallback(
+  (lineId) => {
+    setTimeout(() => {
+      const startTime = performance.now();
+      const duration = 1000; // 1초 동안 페이드 아웃
+
+      requestAnimationFrame(fade);
+    }, 1000); // 1초 후 페이드 아웃 시작
+  },
+  [redrawCanvas],
+);
+```
+
+<p align="center">
+<img src="https://postfiles.pstatic.net/MjAyNDA4MzBfMTA0/MDAxNzI1MDIwNzc4ODg5.LgS0AGnlhUQCO1lfH7Rku9UR0gP5sfJBt8EDurN8nSIg.IyuisVxEOAQCrsMciH7BDnRiZ7pNvokx_xrLNJE-sk4g.GIF/%ED%99%94%EB%A9%B4_%EB%85%B9%ED%99%94_%EC%A4%91_2024-08-30_211850_(1).gif?type=w3840" width="600">
+</p>
+
+`startFadeOut` 함수를 통해 페이드 아웃을 구현했습니다.
+
+페이드 아웃이 적용되는 방식은 아래와 같습니다.
+
+1. 선이 그려진 후 1초 뒤 페이드 아웃이 시작됩니다.
+2. 1초 동안 선명한 선이 유지된 뒤 1초간 서서히 선이 사라집니다.
+
+선이 사라져서 투명도를 나타내는 `opacity`의 수치가 0이 되어 선이 완전 사라지면 `lineRef` 배열에서 제거되어 선이 완전히 사라지게 됩니다.
+<br><br>
+
+### 3. 상대 좌표 시스템을 이용한 드로잉 적용
+
+이 방식으로 접근한 이유는 상대 좌표를 사용함으로써, 드로잉 하고 싶은 위치를 화면 크기에 상관없이 같은 위치에 그려질 것이라고 생각했습니다.
+
+**보내는 쪽**: iframe 크기가 800x600
+
+**받는 쪽**: iframe 크기가 1000x750
+
+보내는 쪽의 iframe 내에서 좌측 상단에서 100px 오른쪽, 75px 아래 지점(100, 75)에 점을 찍었다고 가정해 설명하겠습니다.
+
+#### <보내는 쪽 사용자>
+
+```js
+const x = 100;
+const y = 75;
+const relativeX = x / canvas.width = 100 / 800 = 0.125;
+const relativeY = y / canvas.height = 75 / 600 = 0.125;
+```
+
+1. 실제 그림이 그려지는 좌표를 캔버스의 크기로 나누어서 0과 1 사이의 값으로 변환합니다.
+2. 보내는 쪽 사용자는 (0.125, 0.125)라는 상대 좌표를 서버로 전송합니다.
+
+#### <받는 쪽 사용자>
+
+```js
+const receivedRelativeX = 0.125;
+const receivedRelativeY = 0.125;
+const x = receivedRelativeX * canvas.width = 0.125 * 1000 = 125;
+const y = receivedRelativeY * canvas.height = 0.125 * 750 = 93.75;
+```
+
+1. 받는 쪽에서 (0.125, 0.125)의 값을 서버로부터 전달 받습니다.
+2. 받은 좌표를 받는 쪽의 캔버스 크기에 곱하여 실제 픽셀 좌표로 변환하여 (125, 93.75) 위치에 점이 찍히게 됩니다.
+
+<p align="center">
+<img src="https://postfiles.pstatic.net/MjAyNDA4MzBfNDkg/MDAxNzI1MDIxNTYyMjc1.piMfP036wKSCs0KXCMqcQ1caxbNp8yhJE6AkVX-a7aQg.OmJEyXqZQNLvUAROFVRwobAR_WpK8dCN57-VURVSgrMg.GIF/%ED%99%94%EB%A9%B4_%EB%85%B9%ED%99%94_%EC%A4%91_2024-08-30_213815.gif?type=w3840" width="600">
+</p>
+
+이렇게 함으로써, iframe의 크기나 화면 비율에 관계없이 두 사용자 모두 자신의 iframe 내에서 동일한 상대적 위치(좌상단에서 12.5% 오른쪽, 12.5% 아래)에 점이 찍히는 것을 볼 수 있습니다.
+
+이 원리가 선을 그리는 모든 과정에 적용되어, 서로 다른 iframe 크기를 가진 사용자들 사이에서도 일관된 경험을 제공할 수 있습니다.
+
+사용자들은 자신의 iframe 크기에 맞게 조정된 동일한 그림을 보게 되므로, 마치 같은 캔버스 위에 그림을 그리는 것 같은 경험을 할 수 있습니다.
+<br><br><br>
+
+# 💭 Memoir
+
+이번 프로젝트를 진행하면서 많은 양은 아니지만 서버를 접해보고 `WebSocket`을 사용하면서 실시간 양방향 통신 이라는 경험을 할 수 있었던 즐거운 경험이었던 것 같습니다.
+
+Gong-Gan 프로젝트를 진행하면서 크게 2가지의 어려움과 깨달음이 있었습니다.
+
+### 1. WebSocket을 이용한 실시간 통신
+
+실시간으로 데이터를 주고 받기 위해서 `WebSocket`을 사용했지만 비동기 적으로 작동하고, 연결 끊김이나 이벤트를 주고 받는 것에 일관성을 유지하는 것이 생각보다 많은 어려움을 동반한다는 것을 느낀 순간이 많았습니다.<br>
+
+프론트엔드 지식만 가진채로 프로젝트를 진행하면서 서버와의 통신과 서버 측 로직을 이해하는 것이 처음에는 어려웠지만 그 과정에서 클라이언트와 서버 사이의 통신이 어떤식으로 상호작용하는지 조금은 이해할 수 있었고, 새로운 지식을 배우고 경험하는 것이 즐거움으로 다가오는 순간이 많았습니다.
+
+### 2. 사용자 경험을 위한 고민
+
+크롬 확장 프로그램을 이용하는 사용자는 각자 다른 크기와 해상도를 가진 화면으로 사용할 것이고, 편의에 따라 화면의 비율을 조정해서 사용하는 경우가 많다고 생각했지만 생각하는 것과 그것을 고려하여 개발하는 것은 많은 차이가 있다는 것을 느꼈습니다.<br>
+
+모든 상황에 대응하는 것은 짧은 시간내에 구현 가능한 어느정도의 합의점을 찾는 일이 많이 어려웠지만, 그 과정에서 사용자 중심 설계에 대한 중요성을 확실히 깨달을 수 있는 경험이었습니다.
+
+짧은 기간에 생각한 기획을 완벽하게 개발한 프로젝트는 아니라고 생각하지만, 새로운 기술을 경험하고 익혀 생각한 것을 구현하여 뿌듯한 감정이 느껴졌습니다.<br>
+추후 이벤트를 전달하는 것에 정확도를 더 많이 올려 사용자가 브라우저를 사용하는 많은 상황에서 필요한 순간 편안하고 원활한 소통이 될 수 있게 하고싶습니다.
+<br><br><br>
+
 # 🗓️ Schedule
 
 프로젝트 진행 기간<br>
@@ -457,25 +754,3 @@ iframe의 크기 정보도 함께 전송하여, 수신 측에서 더 정확한 �
 - 실시간 클릭 동기화 구현
 - 실시간 음성 채팅 구현
 - 공유 캔버스 구현
-  <br><br><br>
-
-# 💭 Memoir
-
-이번 프로젝트를 진행하면서 많은 양은 아니지만 서버를 접해보고 `WebSocket`을 사용하면서 실시간 양방향 통신 이라는 경험을 할 수 있었던 즐거운 경험이었던 것 같습니다.
-
-Gong-Gan 프로젝트를 진행하면서 크게 2가지의 어려움과 깨달음이 있었습니다.
-
-### 1. WebSocket을 이용한 실시간 통신
-
-실시간으로 데이터를 주고 받기 위해서 `WebSocket`을 사용했지만 비동기 적으로 작동하고, 연결 끊김이나 이벤트를 주고 받는 것에 일관성을 유지하는 것이 생각보다 많은 어려움을 동반한다는 것을 느낀 순간이 많았습니다.<br>
-
-프론트엔드 지식만 가진채로 프로젝트를 진행하면서 서버와의 통신과 서버 측 로직을 이해하는 것이 처음에는 어려웠지만 그 과정에서 클라이언트와 서버 사이의 통신이 어떤식으로 상호작용하는지 조금은 이해할 수 있었고, 새로운 지식을 배우고 경험하는 것이 즐거움으로 다가오는 순간이 많았습니다.
-
-### 2. 사용자 경험을 위한 고민
-
-크롬 확장 프로그램을 이용하는 사용자는 각자 다른 크기와 해상도를 가진 화면으로 사용할 것이고, 편의에 따라 화면의 비율을 조정해서 사용하는 경우가 많다고 생각했지만 생각하는 것과 그것을 고려하여 개발하는 것은 많은 차이가 있다는 것을 느꼈습니다.<br>
-
-모든 상황에 대응하는 것은 짧은 시간내에 구현 가능한 어느정도의 합의점을 찾는 일이 많이 어려웠지만, 그 과정에서 사용자 중심 설계에 대한 중요성을 확실히 깨달을 수 있는 경험이었습니다.
-
-짧은 기간에 생각한 기획을 완벽하게 개발한 프로젝트는 아니라고 생각하지만, 새로운 기술을 경험하고 익혀 생각한 것을 구현하여 뿌듯한 감정이 느껴졌습니다.<br>
-추후 이벤트를 전달하는 것에 정확도를 더 많이 올려 사용자가 브라우저를 사용하는 많은 상황에서 필요한 순간 편안하고 원활한 소통이 될 수 있게 하고싶습니다.
