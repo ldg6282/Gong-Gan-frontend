@@ -20,7 +20,7 @@ module.exports = {
     "no-multiple-empty-lines": ["error", { max: 1, maxEOF: 1, maxBOF: 0 }],
     "import/no-extraneous-dependencies": ["error", { devDependencies: true }],
     "no-unused-vars": "error",
-    quotes: ["error", "double"],
+    quotes: ["error", "double", { avoidEscape: true, allowTemplateLiterals: true }],
     semi: ["error", "always"],
     eqeqeq: ["error", "always"],
     "array-callback-return": "off",
@@ -33,6 +33,7 @@ module.exports = {
     "react/style-prop-object": "off",
     "func-names": "off",
     "no-undef": "off",
+    "consistent-return": "off",
     "no-console": "error",
   },
 };
