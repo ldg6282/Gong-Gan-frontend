@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useAtom } from "jotai";
+import { nanoid } from "nanoid";
 import { zoomScaleAtom, htmlContentAtom, userIdAtom } from "../atoms/atoms";
 import ScrollSync from "./ScrollSync";
 import ClickSync from "./ClickSync";
@@ -15,10 +16,10 @@ export default function IframeLoader({ roomId }) {
 
   useEffect(() => {
     if (!userId) {
-      const newUserId = `user_${Math.random().toString(36).slice(2, 11)}`;
+      const newUserId = `user_${nanoid()}`;
       setUserId(newUserId);
     }
-  }, [userId]);
+  }, [userId, setUserId]);
 
   useEffect(() => {
     const updateDimensions = () => {

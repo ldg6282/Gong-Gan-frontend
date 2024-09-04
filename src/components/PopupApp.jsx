@@ -11,8 +11,6 @@ export default function PopupApp() {
   const [socket, setSocket] = useState(null);
   const [, setToast] = useAtom(toastAtom);
 
-  const randomRoomId = Math.random().toString(36).slice(2, 11);
-
   useEffect(() => {
     const WS_SERVER_URL = import.meta.env.VITE_WS_SERVER_URL;
     const ws = new WebSocket(WS_SERVER_URL);
@@ -25,7 +23,15 @@ export default function PopupApp() {
   function handleCreateRoom() {
     setIsShowCreateRoom(true);
     setIsShowJoinRoom(false);
-    setRoomId(randomRoomId);
+    if (socket) {
+      socket.send(JSON.stringify({ type: "generateRoomId" }));
+      socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === "roomIdGenerated") {
+          setRoomId(data.roomId);
+        }
+      };
+    }
   }
 
   function handleJoinRoom() {
@@ -90,6 +96,8 @@ export default function PopupApp() {
                   }
                 });
               });
+            } else if (data.type === "error" && data.context === "createRoom") {
+              setToast({ message: data.message, type: "error" });
             }
           };
         }
