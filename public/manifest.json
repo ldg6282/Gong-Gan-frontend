@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Gong-Gan",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Gong-Gan은 여러 명의 사용자가 협업할 수 있는 공간을 제공합니다.",
-  "permissions": ["tabs", "activeTab", "scripting", "declarativeNetRequest"],
+  "permissions": ["declarativeNetRequest"],
   "background": {
     "service_worker": "background.js"
   },
