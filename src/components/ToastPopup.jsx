@@ -6,7 +6,7 @@ export default function ToastPopup() {
   const [toast, setToast] = useAtom(toastAtom);
 
   useEffect(() => {
-    if (toast.message) {
+    if (toast?.message) {
       const timer = setTimeout(() => {
         setToast({ ...toast, message: "" });
       }, 1500);
@@ -17,7 +17,9 @@ export default function ToastPopup() {
     return () => {};
   }, [toast, setToast]);
 
-  if (!toast.message) return null;
+  if (!toast?.message) {
+    return null;
+  }
 
   return (
     <div className="fixed w-80 h-12 top-4 pt-2 left-1/2 transform -translate-x-1/2 bg-cream border-2 border-blue font-sans text-center text-lg rounded">
