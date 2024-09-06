@@ -238,9 +238,7 @@ XSS는 악의적인 스크립트가 웹페이지에 삽입되어 실행되는 �
 이 과정을 통해 브라우저는 수정된 헤더를 기반으로 페이지를 렌더링하게 되어, 원래는 iframe 안에 로드되지 않을 웹 페이지가 로드됩니다.
 <br><br><br>
 
-## WebSocket을 이용한 실시간 동기화
-
-같은 공간에 접속한 사용자들만 통신이 가능하게 해야했습니다. 그러기 위해서는 각 방에 랜덤으로 Id를 부여하고 Id가 같은 방에 접속한 사용자들에게만 이벤트를 전송하여, 동시에 여러방이 생성되는 상황에도 이벤트를 정확하게 전송해야 했습니다.
+## 공간 생성과 공간 참여
 
 ### 1. 중복 가능성이 없는 roomId 생성
 
@@ -256,25 +254,34 @@ const randomroomId = Math.random().toString(36).slice(2, 11);
 
 처음 시도했던 방식은 `Math.random`메서드를 통해 영문, 숫자가 결합된 랜덤한 roomId를 생성하여 서버에 저장하는 방식으로 구현했습니다.<br>
 9자리의 랜덤한 roomId를 생성한다고는 했지만 방 번호가 겹칠 가능성이 없는 것은 아니었습니다.<br>
-이미 생성된 roomId에 대한 유효성 검사를 진행하고, 오류 토스트 메시지 팝업이 표시되지만 사용성이 떨어질 우려가 있다고 판단하였습니다.
+이미 생성된 roomId에 대한 유효성 검사를 진행하고, 오류 토스트 메시지 팝업이 표시되지만 고유한 Id를 생성하는 것에 초점을 맞췄을 때 고유성이 부족하다고 판단하였습니다.
 <br>
 
-#### 1-2. 서버에서 생성하는 랜덤한 Id
+#### 1-2. Nano Id로 생성하는 랜덤한 Id
 
-서버에서 roomId를 생성하는 방식을 선택하여 구현했습니다.<br>
-클라이언트에서 생성하는 Id와는 다르게 서버에서 존재하지 않는 Id를 전달받아 사용하기 때문에 중복 Id 생성이 되지 않습니다.
+고유한 Id 생성에 초점을 사용을 고려한 라이브러리는 UUID와 Nano Id가 있었습니다.<br>
+`UUID`는 매우 높은 고유성을 가지고 있지만 Id의 길이가 길다는 단점이 있었고, `Nano Id`는 높은 고유성과 더불어 Id의 길이도 짧았습니다.<br>
+Id의 길이가 짧았을 때 중복 생성 문제가 생기지 않을까 우려했지만, 10억분의 1의 중복 가능성을 가지고 있었기 때문에 고유성을 가질 수 있다고 판단했습니다.
+
+기본적으로 Nano ID는 URL 친화적인 기호( A-Za-z0-9\_-)를 사용하고 21자로 구성된 ID를 반환합니다.
+
+```js
+import { nanoid } from "nanoid";
+model.id = nanoid(); // "V1StGXR8_Z5jdHi6B-myT"
+```
 
 <p align="center">
-<img src="https://postfiles.pstatic.net/MjAyNDA4MjdfMTM3/MDAxNzI0NzQ0NzU1OTk0.DDKBnsHzSW6XX583TkJd7LHaIHeZyyrcbz9IrGN-3dwg.YhxmpwF8d3GsFfhoec7PrTgYabytLeAgXWRJAaRnR-Mg.PNG/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7_2024-08-27_164142.png?type=w773" width="600">
-</p>
-<p align="center">
-<img src="https://postfiles.pstatic.net/MjAyNDA4MjdfMjIy/MDAxNzI0NzQ1NjY1ODU3.zoUjITbKV_bMzB_0G4nE8O3C7-WSU3VpU22hPHfuiWQg.fAp6J1et98IKMhWOik7scJFB-_Ew48vPNX6hnOvtKqcg.PNG/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7_2024-08-27_170043.png?type=w773" width="600">
+<img src="https://postfiles.pstatic.net/MjAyNDA4MjdfNzQg/MDAxNzI0NzQ0NzU1OTMx.oiu53l6HXDryVi52uGqBBdoEGtS-XNbr1VuLPYMFKLgg.f6nlHpLXQe_Jz8gYLY12kRPqg13EpVKP5X-dMekzhi8g.PNG/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7_2024-08-27_164421.png?type=w773" width="600">
 </p>
 
-위 이미지와 같이 공간 생성 버튼을 클릭했을 때 보이는 랜덤한 roomId는 서버에서 유효성 검사를 진행한 후 생성된 roomId이기 때문에 이용자의 사용성이 떨어질 우려를 하지 않을 수 있었습니다.
-<br><br>
+이러한 방식으로 생성한 Id를 통해서 `1-1의 Math.random`메서드를 사용했을 때와 마찬가지의 방식으로 진행됩니다.
+`Nano Id`를 통한 랜덤한 Id 생성을 통해 100%는 아니지만 중복 될 확률이 0에 수렴하도록 구현하여 고유성을 확보했습니다.
 
-### 2. roomId를 포함한 이벤트를 서버로 전송
+## WebSocket을 이용한 실시간 동기화
+
+같은 공간에 접속한 사용자들만 통신이 가능하게 해야했습니다. Id가 같은 방에 접속한 사용자들에게만 이벤트를 전송하여, 동시에 여러방이 생성되는 상황에도 이벤트를 정확하게 전송해야 했습니다.
+
+### 1. roomId를 포함한 이벤트를 서버로 전송
 
 <p align="center">
 <img src="https://postfiles.pstatic.net/MjAyNDA4MjJfOTQg/MDAxNzI0MzIyODA3MjE4.rxi0UO-trhWglrdxdUYYcKrUut4jrLaOEtUKKluSXXMg.firu2RRx4nM96GWzqOODBqGlFf5OAoNwUOhNMNPepqMg.PNG/image.png?type=w773" width="600">
@@ -296,7 +303,7 @@ if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
 - 이벤트를 전송하는 공간 접속자가 roomId를 포함한 이벤트를 서버로 전송합니다.
   <br><br>
 
-### 3. 전송받은 roomId와 동일한 공간에만 이벤트를 전송
+### 2. 전송받은 roomId와 동일한 공간에만 이벤트를 전송
 
 <p align="center">
 <img src="https://postfiles.pstatic.net/MjAyNDA4MjJfMTYx/MDAxNzI0MzE1MTIwNDM4.KOuqaJTKeKZNNnGF7zJjx5_0lEkslbxYlE7BbFcN-UQg.FISB1x4adf_oi5a6Qt6OLvUODj46kBOJZ3V0GZZf6vog.PNG/image.png?type=w773" width="600">
@@ -421,7 +428,7 @@ function handleClick(event) {
 
 두번째로 접근한 방식은 클릭 위치를 상대 좌표로 변환하고, 현재 페이지의 URL도 함께 전송하는 것이었습니다.
 
-#### <상대 좌표와 URL을 이용한 클릭 동기화 방식>
+#### <상대 좌표를 이용한 클릭 동기화 방식>
 
 ```js
 function handleClick(event) {
@@ -450,13 +457,78 @@ function handleClick(event) {
 이 방식으로 접근한 이유는 상대 좌표를 사용함으로써, 화면 크기에 상관없이 동일한 비율의 위치를 클릭할 수 있다고 생각했습니다.<br>
 
 예를 들어, 화면의 정중앙을 클릭했다면 모든 사용자의 화면에서 정중앙이 클릭됩니다.<br>
+<br>
 
-URL을 함께 전송함으로써, 사용자들이 같은 페이지를 보고 있는지 확인할 수 있게 되었습니다.<br>
+#### <URL을 이용한 클릭 동기화 방식>
 
-iframe의 크기 정보도 함께 전송하여, 수신 측에서 더 정확한 위치 계산이 가능하게 했습니다.<br>
+URL의 변경을 감지하는 방법은 다음과 같습니다.
+`popstate`와 `MutationObserver`을 이용했습니다.
+ 
+<details>
+<summary>🤔popstate란❓</summary>
 
-클릭 이벤트로 인해 좌표 변경과 URL 변경이 동시에 발생할 경우, URL 변경이 우선적으로 적용되도록 구현했습니다.<br>
-예를 들어, 한 사용자가 새로운 페이지로 이동하는 링크를 클릭했다면, 다른 사용자들의 화면도 먼저 해당 페이지로 이동한 후에 클릭 이벤트가 적용됩니다.<br>
+`popstate` 이벤트는 브라우저의 세션 기록(히스토리 스택)에 변화가 있을 때 발생하는 이벤트입니다.<br>
+사용자가 브라우저의 뒤로 가기, 앞으로 가기 버튼을 눌러 페이지의 상태가 변경될 때 감지하기 위해 사용됩니다.
+
+</details>
+<details>
+<summary>🤔MutationObserver란❓</summary>
+
+`MutationObserver` 웹 페이지의 구조에 변화를 감지합니다.<br>
+DOM에서 발생하는 변화를 비동기적으로 감지하는 객체로 특정 요소에 자식 노드가 추가되거나 삭제되는 등 DOM 구조가 변할 때 이를 감지하기 위해 사용됩니다.
+
+</details><br>
+
+```js
+const handleUrlChange = useCallback(
+      lastUrlRef.current = newUrl;
+
+      if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+        const message = JSON.stringify({
+          type: "urlChange",
+          roomId,
+          userId,
+          url: newUrl,
+        });
+        socketRef.current.send(message);
+      }
+    [roomId, userId],
+  );
+```
+
+<p align="center">
+<img src="https://postfiles.pstatic.net/MjAyNDA5MDZfMTE2/MDAxNzI1NjA5NDQyMDY1._oBI7rMlezvopx0H0fdS5nLJpkJgsVQ1cmgGjloz4fsg.lkmOVKRQ1UzfQ6w9QdPOH8p_AssM4ruM1xquPJ9Ovs4g.PNG/image.png?type=w773" width="600">
+</p>
+
+`MutationObserver`나 `popstate` 이벤트 리스너가 변화를 감지하면, handleUrlChange 함수가 호출됩니다.<br>
+이 함수는 현재 URL과 이전에 저장된 URL을 비교하여 변경이 있을 경우에만 서버로 새로운 URL 정보를 전송합니다.<br>
+이를 통해 불필요한 데이터 전송을 방지하고 효율적인 동기화를 가능하게 합니다.
+
+#### 1. URL 동기화<br>
+
+- handleUrlChange 함수는 iframe의 URL 변경을 감지합니다.
+- 현재 URL과 이전 URL을 비교하여 변경이 있을 경우에만 서버로 새 URL 정보를 전송합니다.
+  이를 통해 모든 사용자가 동일한 페이지를 볼 수 있도록 합니다.
+
+#### 2. 클릭 이벤트 동기화<br>
+
+- 클릭 이벤트 발생 시, 다음 정보를 서버로 전송합니다<br>
+
+  - 클릭한 상대 좌표 (relativeX, relativeY)<br>
+  - 현재 iframe의 크기 (iframeWidth, iframeHeight)<br>
+  - 현재 URL (handleUrlChange 함수를 통해 전송)<br>
+
+  이 정보를 통해 다른 사용자들의 화면에서도 동일한 위치에 클릭 효과를 표시할 수 있습니다.
+
+#### 3. 동기화 우선순위<br>
+
+- URL 변경과 클릭 이벤트가 동시에 발생할 경우(예: 새 페이지로 이동하는 링크 클릭), URL 변경이 먼저 적용됩니다.<br>
+- 다른 사용자들의 화면은 먼저 새 페이지로 이동한 후에 클릭 이벤트가 시각화됩니다.
+
+#### 4. 크로스 브라우저 호환성<br>
+
+- iframe의 크기 정보를 함께 전송함으로써, 서로 다른 화면 크기나 해상도를 가진 사용자들 간에도 정확한 클릭 위치를 표시할 수 있습니다.
+  <br><br>
 
 이러한 방식을 통해 사용자들은 화면 크기나 해상도에 관계없이 동일한 요소를 클릭하고 있다는 느낌을 받을 수 있고, URL 동기화를 통해 모든 사용자가 항상 동일한 페이지를 보면서 협업할 수 있습니다.
 <br><br><br>
