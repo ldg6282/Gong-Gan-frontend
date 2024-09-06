@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAtom } from "jotai";
+import { nanoid } from "nanoid";
 import { htmlContentAtom, toastAtom } from "../atoms/atoms";
 import ToastPopup from "./ToastPopup";
 
@@ -9,29 +10,33 @@ export default function PopupApp() {
   const [url, setUrl] = useAtom(htmlContentAtom);
   const [roomId, setRoomId] = useState("");
   const [socket, setSocket] = useState(null);
+  const [, setIsSocketConnected] = useState(false);
   const [, setToast] = useAtom(toastAtom);
 
   useEffect(() => {
     const WS_SERVER_URL = import.meta.env.VITE_WS_SERVER_URL;
     const ws = new WebSocket(WS_SERVER_URL);
 
+    ws.onopen = () => {
+      setIsSocketConnected(true);
+    };
+
+    ws.onclose = () => {
+      setIsSocketConnected(false);
+    };
+
     setSocket(ws);
 
-    return () => ws.close();
-  }, [url]);
+    return () => {
+      ws.close();
+    };
+  }, []);
 
   function handleCreateRoom() {
     setIsShowCreateRoom(true);
     setIsShowJoinRoom(false);
-    if (socket) {
-      socket.send(JSON.stringify({ type: "generateRoomId" }));
-      socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.type === "roomIdGenerated") {
-          setRoomId(data.roomId);
-        }
-      };
-    }
+    const newRoomId = nanoid();
+    setRoomId(newRoomId);
   }
 
   function handleJoinRoom() {
