@@ -2,6 +2,8 @@ import { atom } from "jotai";
 
 export const htmlContentAtom = atom("");
 
+export const roomIdAtom = atom("");
+
 export const zoomScaleAtom = atom(1);
 
 export const soundButtonAtom = atom(true);
