@@ -1,42 +1,47 @@
-import { useState, useEffect } from "react";
-import { useAtom } from "jotai";
+import { useState, useEffect, useCallback } from "react";
+import { useSetAtom } from "jotai";
 import { nanoid } from "nanoid";
-import { htmlContentAtom, toastAtom } from "../atoms/atoms";
+
 import ToastPopup from "./ToastPopup";
+import useWebSocket from "../hooks/useWebSocket";
+
+import { toastAtom } from "../atoms/atoms";
+import { handleWebSocketError, checkInputValidity } from "../utils/errorHandling";
 
 export default function PopupApp() {
   const [isShowCreateRoom, setIsShowCreateRoom] = useState(false);
   const [isShowJoinRoom, setIsShowJoinRoom] = useState(false);
-  const [url, setUrl] = useAtom(htmlContentAtom);
+  const [url, setUrl] = useState("");
   const [roomId, setRoomId] = useState("");
-  const [socket, setSocket] = useState(null);
-  const [, setIsSocketConnected] = useState(false);
-  const [, setToast] = useAtom(toastAtom);
+  const setToast = useSetAtom(toastAtom);
+
+  const { sendMessage, setOnMessage } = useWebSocket();
+
+  const handleSocketMessage = useCallback(
+    (event) => {
+      const data = JSON.parse(event.data);
+      switch (data.type) {
+        case "roomCreated":
+        case "roomJoined":
+          createTab(data.type === "roomCreated" ? url : data.url, roomId);
+          break;
+        case "error":
+          handleWebSocketError(data, setToast);
+          break;
+      }
+    },
+    [url, roomId, setToast],
+  );
 
   useEffect(() => {
-    const WS_SERVER_URL = import.meta.env.VITE_WS_SERVER_URL;
-    const ws = new WebSocket(WS_SERVER_URL);
-
-    ws.onopen = () => {
-      setIsSocketConnected(true);
-    };
-
-    ws.onclose = () => {
-      setIsSocketConnected(false);
-    };
-
-    setSocket(ws);
-
-    return () => {
-      ws.close();
-    };
-  }, []);
+    setOnMessage(handleSocketMessage);
+  }, [setOnMessage, handleSocketMessage]);
 
   function handleCreateRoom() {
-    setIsShowCreateRoom(true);
-    setIsShowJoinRoom(false);
     const newRoomId = nanoid();
     setRoomId(newRoomId);
+    setIsShowCreateRoom(true);
+    setIsShowJoinRoom(false);
   }
 
   function handleJoinRoom() {
@@ -48,97 +53,42 @@ export default function PopupApp() {
     setUrl(e.target.value);
   }
 
-  function isValidUrlFormat(pageUrl) {
-    const urlPattern = /^(http:\/\/|https:\/\/|www\.)[^\s/$.?#].[^\s]*$/i;
-    return urlPattern.test(pageUrl);
-  }
-
-  function checkInputs(isJoinRoom) {
-    switch (true) {
-      case !roomId.trim():
-        setToast({ message: "방 번호를 입력해주세요.", type: "error" });
-        return false;
-
-      case roomId.includes(" "):
-        setToast({ message: "방 번호에 공백이 포함될 수 없습니다.", type: "error" });
-        return false;
-
-      case isJoinRoom && !url.trim():
-        setToast({ message: "URL을 입력해주세요.", type: "error" });
-        return false;
-
-      case isJoinRoom && url.includes(" "):
-        setToast({ message: "URL에 공백이 포함될 수 없습니다.", type: "error" });
-        return false;
-
-      case isJoinRoom && !isValidUrlFormat(url):
-        setToast({ message: "유효하지 않은 URL 형식입니다.", type: "error" });
-        return false;
-
-      default:
-        return true;
-    }
-  }
-
   function toggleExtension(status) {
     chrome.runtime.sendMessage({ action: "toggleExtension", status });
   }
 
+  function setRoomIdInStorage(roomIdToStore, callback) {
+    chrome.runtime.sendMessage({ action: "setRoomId", roomId: roomIdToStore }, callback);
+  }
+
+  function createTab(tabUrl, tabRoomId) {
+    chrome.tabs.create({ url: tabUrl }, (tab) => {
+      chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+        if (tabId === tab.id && info.status === "complete") {
+          chrome.tabs.onUpdated.removeListener(listener);
+          chrome.tabs.sendMessage(tabId, { action: "initContent", roomId: tabRoomId });
+        }
+      });
+    });
+  }
+
   function handleCreateRoomSubmit() {
-    if (checkInputs(true) && socket) {
-      socket.send(JSON.stringify({ type: "createRoom", roomId, url }));
-      chrome.runtime.sendMessage({ action: "setRoomId", roomId }, function (response) {
+    if (checkInputValidity(roomId, url, true, setToast)) {
+      sendMessage({ type: "createRoom", roomId, url });
+      setRoomIdInStorage(roomId, function (response) {
         if (response && response.success) {
           toggleExtension(true);
-          socket.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.type === "roomCreated") {
-              chrome.tabs.create({ url }, (tab) => {
-                chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
-                  if (tabId === tab.id && info.status === "complete") {
-                    chrome.tabs.onUpdated.removeListener(listener);
-                    chrome.tabs.sendMessage(tabId, { action: "initContent", roomId });
-                  }
-                });
-              });
-            } else if (data.type === "error" && data.context === "createRoom") {
-              setToast({ message: data.message, type: "error" });
-            }
-          };
         }
       });
     }
   }
 
   function handleJoinRoomSubmit() {
-    if (checkInputs(false) && socket) {
-      socket.send(JSON.stringify({ type: "joinRoom", roomId }));
-      chrome.runtime.sendMessage({ action: "setRoomId", roomId }, function (response) {
+    if (checkInputValidity(roomId, url, false, setToast)) {
+      sendMessage({ type: "joinRoom", roomId });
+      setRoomIdInStorage(roomId, function (response) {
         if (response.success) {
           toggleExtension(true);
-          socket.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.type === "roomJoined") {
-              chrome.tabs.create({ url: data.url }, (tab) => {
-                chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
-                  if (tabId === tab.id && info.status === "complete") {
-                    chrome.tabs.onUpdated.removeListener(listener);
-                    chrome.tabs.sendMessage(tabId, { action: "initContent", roomId });
-                  }
-                });
-              });
-            } else if (data.type === "error" && data.context === "joinRoom") {
-              if (data.errorCode === "roomNotFound") {
-                setToast({ message: "존재하지 않는 방입니다!", type: "error" });
-              } else {
-                setToast({
-                  message: data.message || "방 참여 중 오류가 발생했습니다.",
-                  type: "error",
-                });
-              }
-              socket.onmessage = null;
-            }
-          };
         }
       });
     }
