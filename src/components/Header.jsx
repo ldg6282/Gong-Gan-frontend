@@ -1,10 +1,13 @@
-import { useAtom } from "jotai";
 import { useEffect } from "react";
-import { htmlContentAtom, toastAtom } from "../atoms/atoms";
+import { useAtom } from "jotai";
+
 import ButtonGroup from "./ButtonGroup";
 import ToastPopup from "./ToastPopup";
 
-export default function Header({ roomId }) {
+import { htmlContentAtom, roomIdAtom, toastAtom } from "../atoms/atoms";
+
+export default function Header() {
+  const [roomId] = useAtom(roomIdAtom);
   const [, setUrl] = useAtom(htmlContentAtom);
   const [, setToast] = useAtom(toastAtom);
 

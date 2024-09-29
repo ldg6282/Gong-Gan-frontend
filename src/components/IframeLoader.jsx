@@ -1,18 +1,25 @@
 import { useEffect, useRef, useState } from "react";
 import { useAtom } from "jotai";
 import { nanoid } from "nanoid";
-import { zoomScaleAtom, htmlContentAtom, userIdAtom } from "../atoms/atoms";
-import ScrollSync from "./ScrollSync";
-import ClickSync from "./ClickSync";
-import VoiceChat from "./VoiceChat";
+
 import DrawingSync from "./DrawingSync";
 
-export default function IframeLoader({ roomId }) {
+import useScrollSync from "../hooks/useScrollSync";
+import useClickSync from "../hooks/useClickSync";
+import useVoiceChat from "../hooks/useVoiceChat";
+
+import { zoomScaleAtom, htmlContentAtom, userIdAtom } from "../atoms/atoms";
+
+export default function IframeLoader() {
   const iframeRef = useRef(null);
   const [url] = useAtom(htmlContentAtom);
   const [scale] = useAtom(zoomScaleAtom);
   const [userId, setUserId] = useAtom(userIdAtom);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
+  useScrollSync(iframeRef);
+  useClickSync(iframeRef);
+  useVoiceChat();
 
   useEffect(() => {
     if (!userId) {
@@ -62,12 +69,9 @@ export default function IframeLoader({ roomId }) {
             pointerEvents: "none",
           }}
         >
-          <DrawingSync iframeRef={iframeRef} roomId={roomId} />
+          <DrawingSync iframeRef={iframeRef} />
         </div>
       </div>
-      <ScrollSync iframeRef={iframeRef} roomId={roomId} />
-      <ClickSync iframeRef={iframeRef} roomId={roomId} />
-      <VoiceChat roomId={roomId} />
     </div>
   );
 }
