@@ -1,60 +1,36 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useAtom } from "jotai";
-import { userIdAtom, seletedColorAtom, penToolAtom } from "../atoms/atoms";
 
-export default function DrawingSync({ iframeRef, roomId }) {
+import { roomIdAtom, userIdAtom, seletedColorAtom, penToolAtom } from "../atoms/atoms";
+import useWebSocket from "../hooks/useWebSocket";
+
+export default function DrawingSync({ iframeRef }) {
   const [isDrawing, setIsDrawing] = useState(false);
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
-  const socketRef = useRef(null);
   const currentLineRef = useRef(null);
   const linesRef = useRef([]);
+  const [roomId] = useAtom(roomIdAtom);
   const [color] = useAtom(seletedColorAtom);
   const [userId] = useAtom(userIdAtom);
   const [isPenToolActive] = useAtom(penToolAtom);
-
-  const connectWebSocket = useCallback(() => {
-    if (socketRef.current?.readyState === WebSocket.OPEN) return;
-
-    const WS_SERVER_URL = import.meta.env.VITE_WS_SERVER_URL;
-    const ws = new WebSocket(WS_SERVER_URL);
-
-    ws.onopen = () => ws.send(JSON.stringify({ type: "joinRoom", roomId, userId }));
-    ws.onmessage = handleWebSocketMessage;
-    socketRef.current = ws;
-  }, [roomId, userId]);
-
-  useEffect(() => {
-    connectWebSocket();
-    const reconnectInterval = setInterval(() => {
-      if (socketRef.current?.readyState === WebSocket.CLOSED) connectWebSocket();
-    }, 5000);
-    return () => {
-      clearInterval(reconnectInterval);
-      socketRef.current?.close();
-    };
-  }, [connectWebSocket]);
+  const { sendMessage, setOnMessage } = useWebSocket();
 
   const sendDrawingEvent = useCallback(
     (x, y, isStarting, lineId, isDrawingContinue = true) => {
-      if (socketRef.current?.readyState === WebSocket.OPEN) {
-        const canvas = canvasRef.current;
-        socketRef.current.send(
-          JSON.stringify({
-            type: "drawEvent",
-            roomId,
-            userId,
-            relativeX: x / canvas.width,
-            relativeY: y / canvas.height,
-            color,
-            isStarting,
-            isDrawing: isDrawingContinue,
-            lineId,
-          }),
-        );
-      }
+      sendMessage({
+        type: "drawEvent",
+        roomId,
+        userId,
+        relativeX: x / canvasRef.current.width,
+        relativeY: y / canvasRef.current.height,
+        color,
+        isStarting,
+        isDrawing: isDrawingContinue,
+        lineId,
+      });
     },
-    [roomId, userId, color],
+    [roomId, userId, color, sendMessage],
   );
 
   const drawLine = useCallback((ctx, line) => {
@@ -155,8 +131,8 @@ export default function DrawingSync({ iframeRef, roomId }) {
     }
   }, [isDrawing, sendDrawingEvent, startFadeOut]);
 
-  const handleWebSocketMessage = useCallback(
-    (event) => {
+  useEffect(() => {
+    setOnMessage((event) => {
       const data = JSON.parse(event.data);
       if (data.type === "drawEvent" && data.userId !== userId) {
         const canvas = canvasRef.current;
@@ -182,9 +158,8 @@ export default function DrawingSync({ iframeRef, roomId }) {
           currentLineRef.current = null;
         }
       }
-    },
-    [userId, drawLine, startFadeOut],
-  );
+    });
+  }, [setOnMessage, userId, drawLine, startFadeOut]);
 
   useEffect(() => {
     const container = containerRef.current;
