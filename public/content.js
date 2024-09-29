@@ -1,5 +1,5 @@
 chrome.runtime.sendMessage({ action: "checkExtensionActive" }, (checkResponse) => {
-  if (checkResponse.isActive) {
+  if (checkResponse && checkResponse.isActive) {
     chrome.runtime.sendMessage({ action: "getRoomId" }, (roomResponse) => {
       const { roomId } = roomResponse;
       if (roomId) {
