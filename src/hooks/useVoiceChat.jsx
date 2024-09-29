@@ -6,9 +6,11 @@ import {
   soundButtonAtom,
   volumeAtom,
   micVolumeAtom,
+  roomIdAtom,
 } from "../atoms/atoms";
 
-export default function VoiceChat({ roomId }) {
+export default function useVoiceChat() {
+  const [roomId] = useAtom(roomIdAtom);
   const [userId] = useAtom(userIdAtom);
   const [isMicActive, setIsMicActive] = useAtom(micButtonAtom);
   const [isSoundActive, setIsSoundActive] = useAtom(soundButtonAtom);
@@ -194,6 +196,4 @@ export default function VoiceChat({ roomId }) {
         break;
     }
   }
-
-  return null;
 }
