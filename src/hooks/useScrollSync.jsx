@@ -1,10 +1,13 @@
 import { useEffect, useRef, useCallback } from "react";
 import { useAtom } from "jotai";
-import { userIdAtom } from "../atoms/atoms";
 
-export default function ScrollSync({ iframeRef, roomId }) {
+import { roomIdAtom, userIdAtom } from "../atoms/atoms";
+import useWebSocket from "./useWebSocket";
+
+export default function useScrollSync(iframeRef) {
+  const [roomId] = useAtom(roomIdAtom);
   const [userId] = useAtom(userIdAtom);
-  const socketRef = useRef(null);
+  const { sendMessage, setOnMessage } = useWebSocket();
   const lastScrollPositionRef = useRef({ top: 0, left: 0, verticalRatio: 0, horizontalRatio: 0 });
   const isLocalScrollRef = useRef(true);
 
@@ -44,30 +47,18 @@ export default function ScrollSync({ iframeRef, roomId }) {
         ...currentInfo,
       };
 
-      if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-        socketRef.current.send(JSON.stringify(scrollData));
-        lastScrollPositionRef.current = currentInfo;
-      }
+      sendMessage(scrollData);
+      lastScrollPositionRef.current = currentInfo;
     }
-  }, [roomId, userId, getScrollInfo, iframeRef]);
+  }, [roomId, userId, getScrollInfo, iframeRef, sendMessage]);
 
   useEffect(() => {
-    if (socketRef.current || !roomId) return;
-
-    const WS_SERVER_URL = import.meta.env.VITE_WS_SERVER_URL;
-    const ws = new WebSocket(WS_SERVER_URL);
-    socketRef.current = ws;
-
-    ws.onopen = () => {
-      ws.send(JSON.stringify({ type: "joinRoom", roomId, userId }));
-    };
-
-    ws.onmessage = (event) => {
+    setOnMessage((event) => {
       const data = JSON.parse(event.data);
       if (data.type === "scrollUpdate" && data.userId !== userId) {
         syncScroll(data);
       }
-    };
+    });
 
     function syncScroll(data) {
       if (data.userId === userId) return;
@@ -94,11 +85,6 @@ export default function ScrollSync({ iframeRef, roomId }) {
       iframe.addEventListener("load", handleIframeLoad);
 
       return () => {
-        if (socketRef.current) {
-          socketRef.current.close();
-        }
-        socketRef.current = null;
-
         const iframeDoc = iframe.contentDocument;
         if (iframeDoc) {
           iframeDoc.removeEventListener("scroll", handleScroll);
@@ -106,7 +92,5 @@ export default function ScrollSync({ iframeRef, roomId }) {
         iframe.removeEventListener("load", handleIframeLoad);
       };
     }
-  }, [roomId, userId, iframeRef, handleScroll]);
-
-  return null;
+  }, [roomId, userId, iframeRef, handleScroll, setOnMessage]);
 }
