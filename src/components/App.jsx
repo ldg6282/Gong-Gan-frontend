@@ -1,15 +1,22 @@
-import { useSetAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
+import { nanoid } from "nanoid";
 
 import IframeLoader from "./IframeLoader";
 import Header from "./Header";
 
-import { roomIdAtom } from "../atoms/atoms";
+import { roomIdAtom, userIdAtom } from "../atoms/atoms";
 
 export default function App({ roomId }) {
   const setRoomId = useSetAtom(roomIdAtom);
+  const [userId, setUserId] = useAtom(userIdAtom);
 
   if (roomId) {
     setRoomId(roomId);
+  }
+
+  if (!userId) {
+    const newUserId = `user_${nanoid()}`;
+    setUserId(newUserId);
   }
 
   return (

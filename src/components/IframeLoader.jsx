@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { useAtom } from "jotai";
-import { nanoid } from "nanoid";
 
 import DrawingSync from "./DrawingSync";
 
@@ -8,37 +7,30 @@ import useScrollSync from "../hooks/useScrollSync";
 import useClickSync from "../hooks/useClickSync";
 import useVoiceChat from "../hooks/useVoiceChat";
 
-import { zoomScaleAtom, htmlContentAtom, userIdAtom } from "../atoms/atoms";
+import { zoomScaleAtom, htmlContentAtom } from "../atoms/atoms";
 
 export default function IframeLoader() {
   const iframeRef = useRef(null);
   const [url] = useAtom(htmlContentAtom);
   const [scale] = useAtom(zoomScaleAtom);
-  const [userId, setUserId] = useAtom(userIdAtom);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
   useScrollSync(iframeRef);
   useClickSync(iframeRef);
   useVoiceChat();
 
-  useEffect(() => {
-    if (!userId) {
-      const newUserId = `user_${nanoid()}`;
-      setUserId(newUserId);
-    }
-  }, [userId, setUserId]);
+  function updateDimensions() {
+    const { innerWidth: width, innerHeight: height } = window;
+    setDimensions({ width, height });
+  }
 
   useEffect(() => {
-    const updateDimensions = () => {
-      const { innerWidth: width, innerHeight: height } = window;
-      setDimensions({ width, height });
-    };
-
     updateDimensions();
+
     window.addEventListener("resize", updateDimensions);
 
     return () => window.removeEventListener("resize", updateDimensions);
-  }, []);
+  }, [dimensions]);
 
   useEffect(() => {
     if (iframeRef.current) {
