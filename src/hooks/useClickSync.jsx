@@ -1,6 +1,5 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import { useAtom } from "jotai";
-import { debounce } from "lodash";
 
 import { roomIdAtom, userIdAtom } from "../atoms/atoms";
 import useWebSocket from "./useWebSocket";
@@ -11,65 +10,63 @@ export default function useClickSync(iframeRef) {
   const { sendMessage, setOnMessage } = useWebSocket();
 
   const lastUrlRef = useRef("");
-  const isSimulatingRef = useRef(false);
-  const isUpdatingUrlRef = useRef(false);
-  const urlChangeTimeoutRef = useRef(null);
 
   function handleMessage(data) {
     switch (data.type) {
       case "roomJoined":
       case "urlChange":
-        updateIframeUrl(data.url);
+        if (data.url !== lastUrlRef.current) {
+          updateIframeUrl(data.url);
+        }
         break;
       case "clickEvent":
         simulateClick(data);
         break;
+      default:
+        break;
     }
   }
 
-  useEffect(() => {
-    setOnMessage((event) => {
-      const data = JSON.parse(event.data);
-      handleMessage(data);
-    });
-  }, [setOnMessage, handleMessage]);
+  function handleClick(event) {
+    if (event.detail.isSimulated) return;
 
-  const handleClick = useCallback(
-    (event) => {
-      if (event.detail?.isSimulated || isSimulatingRef.current || isUpdatingUrlRef.current) return;
-
-      const iframe = iframeRef.current;
-      if (!iframe || !iframe.contentDocument) return;
-
-      const relativeX = event.clientX / iframe.clientWidth;
-      const relativeY = event.clientY / iframe.clientHeight;
-
-      if (urlChangeTimeoutRef.current) {
-        clearTimeout(urlChangeTimeoutRef.current);
-      }
-
-      urlChangeTimeoutRef.current = setTimeout(() => {
-        sendMessage({
-          type: "clickEvent",
-          roomId,
-          userId,
-          relativeX,
-          relativeY,
-          iframeWidth: iframe.clientWidth,
-          iframeHeight: iframe.clientHeight,
-        });
-        urlChangeTimeoutRef.current = null;
-      }, 500);
-    },
-    [sendMessage, roomId, userId],
-  );
-
-  const simulateClick = useCallback((data) => {
     const iframe = iframeRef.current;
-    if (!iframe || !iframe.contentDocument || isSimulatingRef.current || isUpdatingUrlRef.current)
-      return;
+    if (!iframe || !iframe.contentDocument) return;
 
-    isSimulatingRef.current = true;
+    const relativeX = event.clientX / iframe.clientWidth;
+    const relativeY = event.clientY / iframe.clientHeight;
+
+    sendMessage({
+      type: "clickEvent",
+      roomId,
+      userId,
+      relativeX,
+      relativeY,
+      iframeWidth: iframe.clientWidth,
+      iframeHeight: iframe.clientHeight,
+    });
+  }
+
+  function handleUrlChange() {
+    const iframe = iframeRef.current;
+    if (!iframe || !iframe.contentWindow) return;
+
+    const newUrl = iframe.contentWindow.location.href;
+    if (newUrl === lastUrlRef.current) return;
+
+    lastUrlRef.current = newUrl;
+
+    sendMessage({
+      type: "urlChange",
+      roomId,
+      userId,
+      url: newUrl,
+    });
+  }
+
+  function simulateClick(data) {
+    const iframe = iframeRef.current;
+    if (!iframe || !iframe.contentDocument) return;
 
     const widthRatio = iframe.clientWidth / data.iframeWidth;
     const heightRatio = iframe.clientHeight / data.iframeHeight;
@@ -89,12 +86,19 @@ export default function useClickSync(iframeRef) {
     }
 
     addClickMarker(iframe.contentDocument, clickX, clickY);
+  }
 
-    isSimulatingRef.current = false;
-  }, []);
+  function updateIframeUrl(url) {
+    const iframe = iframeRef.current;
+    if (iframe && iframe.src !== url) {
+      iframe.src = url;
+      lastUrlRef.current = url;
+    }
+  }
 
-  const addClickMarker = (doc, x, y) => {
+  function addClickMarker(doc, x, y) {
     const marker = doc.createElement("div");
+
     Object.assign(marker.style, {
       position: "absolute",
       width: "10px",
@@ -105,72 +109,31 @@ export default function useClickSync(iframeRef) {
       top: `${y}px`,
       zIndex: "1000",
     });
+
     doc.body.appendChild(marker);
-    setTimeout(() => marker.remove(), 300);
-  };
 
-  const updateIframeUrl = useCallback((url) => {
-    const iframe = iframeRef.current;
-    if (iframe && iframe.src !== url && !isUpdatingUrlRef.current) {
-      isUpdatingUrlRef.current = true;
-      iframe.src = url;
-      lastUrlRef.current = url;
-
-      if (urlChangeTimeoutRef.current) {
-        clearTimeout(urlChangeTimeoutRef.current);
-        urlChangeTimeoutRef.current = null;
-      }
-
-      setTimeout(() => {
-        isUpdatingUrlRef.current = false;
-      }, 1000);
-    }
-  }, []);
-
-  const handleUrlChange = useCallback(
-    debounce(() => {
-      const iframe = iframeRef.current;
-      if (!iframe || !iframe.contentWindow || isUpdatingUrlRef.current) return;
-
-      const newUrl = iframe.contentWindow.location.href;
-      if (newUrl === lastUrlRef.current) return;
-
-      lastUrlRef.current = newUrl;
-
-      sendMessage({
-        type: "urlChange",
-        roomId,
-        userId,
-        url: newUrl,
-      });
-
-      if (urlChangeTimeoutRef.current) {
-        clearTimeout(urlChangeTimeoutRef.current);
-        urlChangeTimeoutRef.current = null;
-      }
-
-      isUpdatingUrlRef.current = true;
-      setTimeout(() => {
-        isUpdatingUrlRef.current = false;
-      }, 1000);
-    }, 300),
-    [roomId, userId, sendMessage],
-  );
+    setTimeout(() => {
+      marker.remove();
+    }, 300);
+  }
 
   useEffect(() => {
+    setOnMessage((event) => {
+      const data = JSON.parse(event.data);
+      handleMessage(data);
+    });
+
     const iframe = iframeRef.current;
     if (!iframe) return;
 
-    const handleIframeLoad = () => {
+    function handleIframeLoad() {
       iframe.contentDocument.addEventListener("click", handleClick);
 
       if (iframe.contentWindow) {
         iframe.contentWindow.addEventListener("popstate", handleUrlChange);
 
         const observer = new MutationObserver(() => {
-          if (!isUpdatingUrlRef.current) {
-            handleUrlChange();
-          }
+          handleUrlChange();
         });
         observer.observe(iframe.contentDocument.body, {
           childList: true,
@@ -183,7 +146,7 @@ export default function useClickSync(iframeRef) {
           observer.disconnect();
         };
       }
-    };
+    }
 
     iframe.addEventListener("load", handleIframeLoad);
 
@@ -196,5 +159,5 @@ export default function useClickSync(iframeRef) {
         iframe.contentWindow.removeEventListener("popstate", handleUrlChange);
       }
     };
-  }, [handleClick, handleUrlChange]);
+  }, [setOnMessage]);
 }
