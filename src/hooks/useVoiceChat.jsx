@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import { useAtom } from "jotai";
 import {
   userIdAtom,
@@ -8,6 +8,7 @@ import {
   micVolumeAtom,
   roomIdAtom,
 } from "../atoms/atoms";
+import useWebSocket from "./useWebSocket";
 
 export default function useVoiceChat() {
   const [roomId] = useAtom(roomIdAtom);
@@ -16,65 +17,13 @@ export default function useVoiceChat() {
   const [isSoundActive, setIsSoundActive] = useAtom(soundButtonAtom);
   const [volume] = useAtom(volumeAtom);
   const [micVolume] = useAtom(micVolumeAtom);
-  const socketRef = useRef(null);
+  const { sendMessage, setOnMessage, isConnected } = useWebSocket();
+
   const localStreamRef = useRef(null);
   const peerConnectionRef = useRef(null);
   const remoteAudioRef = useRef(null);
   const audioContextRef = useRef(null);
   const gainNodeRef = useRef(null);
-
-  const connectWebSocket = useCallback(() => {
-    const WS_SERVER_URL = import.meta.env.VITE_WS_SERVER_URL;
-    socketRef.current = new WebSocket(WS_SERVER_URL);
-
-    socketRef.current.onopen = () => {
-      socketRef.current.send(JSON.stringify({ type: "joinRoom", roomId, userId }));
-      setIsMicActive(true);
-      setIsSoundActive(true);
-      startLocalStream();
-    };
-
-    socketRef.current.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      handleWebRTCMessage(message);
-    };
-
-    socketRef.current.onclose = () => {
-      setTimeout(connectWebSocket, 5000);
-    };
-  }, [roomId, userId, setIsMicActive, setIsSoundActive]);
-
-  useEffect(() => {
-    if (!userId) return;
-    connectWebSocket();
-
-    return () => {
-      if (socketRef.current) socketRef.current.close();
-      stopLocalStream();
-    };
-  }, [userId, connectWebSocket]);
-
-  useEffect(() => {
-    if (localStreamRef.current) {
-      localStreamRef.current.getAudioTracks().forEach((track) => {
-        const updatedTrack = track.clone();
-        updatedTrack.enabled = isMicActive;
-        localStreamRef.current.removeTrack(track);
-        localStreamRef.current.addTrack(updatedTrack);
-      });
-    }
-  }, [isMicActive]);
-
-  useEffect(() => {
-    if (remoteAudioRef.current) {
-      remoteAudioRef.current.muted = !isSoundActive;
-      remoteAudioRef.current.volume = (volume / 100) ** 2;
-    }
-  }, [isSoundActive, volume]);
-
-  useEffect(() => {
-    setMicGain(micVolume);
-  }, [micVolume]);
 
   async function startLocalStream() {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -105,10 +54,12 @@ export default function useVoiceChat() {
       localStreamRef.current.getTracks().forEach((track) => track.stop());
       localStreamRef.current = null;
     }
+
     if (peerConnectionRef.current) {
       peerConnectionRef.current.close();
       peerConnectionRef.current = null;
     }
+
     if (audioContextRef.current) {
       audioContextRef.current.close();
       audioContextRef.current = null;
@@ -119,20 +70,19 @@ export default function useVoiceChat() {
     const peerConnection = new RTCPeerConnection({
       iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
     });
+
     peerConnectionRef.current = peerConnection;
 
     stream.getTracks().forEach((track) => peerConnection.addTrack(track, stream));
 
     peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
-        socketRef.current.send(
-          JSON.stringify({
-            type: "webrtcIceCandidate",
-            candidate: event.candidate,
-            roomId,
-            userId,
-          }),
-        );
+        sendMessage({
+          type: "webrtcIceCandidate",
+          candidate: event.candidate,
+          roomId,
+          userId,
+        });
       }
     };
 
@@ -141,6 +91,7 @@ export default function useVoiceChat() {
         remoteAudioRef.current = new Audio();
         remoteAudioRef.current.autoplay = true;
       }
+
       const [remoteStream] = event.streams;
       remoteAudioRef.current.srcObject = remoteStream;
       remoteAudioRef.current.play();
@@ -154,14 +105,12 @@ export default function useVoiceChat() {
   async function createAndSendOffer() {
     const offer = await peerConnectionRef.current.createOffer();
     await peerConnectionRef.current.setLocalDescription(offer);
-    socketRef.current.send(
-      JSON.stringify({
-        type: "webrtcOffer",
-        offer,
-        roomId,
-        userId,
-      }),
-    );
+    sendMessage({
+      type: "webrtcOffer",
+      offer,
+      roomId,
+      userId,
+    });
   }
 
   async function handleWebRTCMessage(message) {
@@ -172,16 +121,16 @@ export default function useVoiceChat() {
         await peerConnectionRef.current.setRemoteDescription(
           new RTCSessionDescription(message.offer),
         );
+
         const answer = await peerConnectionRef.current.createAnswer();
         await peerConnectionRef.current.setLocalDescription(answer);
-        socketRef.current.send(
-          JSON.stringify({
-            type: "webrtcAnswer",
-            answer,
-            roomId,
-            userId,
-          }),
-        );
+
+        sendMessage({
+          type: "webrtcAnswer",
+          answer,
+          roomId,
+          userId,
+        });
         break;
       }
       case "webrtcAnswer":
@@ -196,4 +145,43 @@ export default function useVoiceChat() {
         break;
     }
   }
+
+  useEffect(() => {
+    setOnMessage((event) => {
+      const message = JSON.parse(event.data);
+      handleWebRTCMessage(message);
+    });
+  }, [setOnMessage]);
+
+  useEffect(() => {
+    setIsMicActive(true);
+    setIsSoundActive(true);
+    startLocalStream();
+
+    return () => {
+      stopLocalStream();
+    };
+  }, [isConnected]);
+
+  useEffect(() => {
+    if (localStreamRef.current) {
+      localStreamRef.current.getAudioTracks().forEach((track) => {
+        const updatedTrack = track.clone();
+        updatedTrack.enabled = isMicActive;
+        localStreamRef.current.removeTrack(track);
+        localStreamRef.current.addTrack(updatedTrack);
+      });
+    }
+  }, [isMicActive]);
+
+  useEffect(() => {
+    if (remoteAudioRef.current) {
+      remoteAudioRef.current.muted = !isSoundActive;
+      remoteAudioRef.current.volume = (volume / 100) ** 2;
+    }
+  }, [isSoundActive, volume]);
+
+  useEffect(() => {
+    setMicGain(micVolume);
+  }, [micVolume]);
 }
