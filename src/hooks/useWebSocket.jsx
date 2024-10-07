@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { useAtom } from "jotai";
 
 import { roomIdAtom, userIdAtom } from "../atoms/atoms";
@@ -6,6 +6,7 @@ import { roomIdAtom, userIdAtom } from "../atoms/atoms";
 export default function useWebSocket() {
   const [roomId] = useAtom(roomIdAtom);
   const [userId] = useAtom(userIdAtom);
+  const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef(null);
 
   const connectWebSocket = useCallback(() => {
@@ -16,10 +17,11 @@ export default function useWebSocket() {
 
     ws.onopen = () => {
       ws.send(JSON.stringify({ type: "joinRoom", roomId, userId }));
+      setIsConnected(true);
     };
 
     socketRef.current = ws;
-  }, [roomId, userId]);
+  }, []);
 
   useEffect(() => {
     connectWebSocket();
@@ -50,5 +52,5 @@ export default function useWebSocket() {
     }
   }, []);
 
-  return { sendMessage, setOnMessage };
+  return { sendMessage, setOnMessage, isConnected };
 }
